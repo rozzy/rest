@@ -4,7 +4,9 @@ var _rest = require('./src/rest');
 
 var _rest2 = _interopRequireDefault(_rest);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
 
 _rest2.default.registerAdapter('test');
 

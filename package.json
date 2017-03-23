@@ -8,7 +8,7 @@
     "serve": "babel-node index.js -b babel-preset-es2015",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "npm run build",
-    "build": "babel index.js --presets babel-preset-es2015 --out-dir dist"
+    "build": "babel . --presets babel-preset-es2015 --out-dir dist --ignore node_modules,.git"
   },
   "repository": {
     "type": "git",
