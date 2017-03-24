@@ -29,9 +29,9 @@ export default (function () {
       throw new TypeError('Adapter must return a valid object')
     }
 
-    let adapterError
-    if (!(adapterError = adapterIsValid(constructedAdapter))) {
-      throw adapterError
+    let adapterContainsErrors = adapterIsValid.call(rest, constructedAdapter)
+    if (adapterContainsErrors instanceof Error) {
+      throw adapterContainsErrors
     }
 
     rest.adapters = [...rest.adapters, constructedAdapter]

@@ -1,14 +1,18 @@
 'use strict';
 
-var _rest = require('./src/rest');
+var _core = require('./src/core');
 
-var _rest2 = _interopRequireDefault(_rest);
+var _core2 = _interopRequireDefault(_core);
+
+var _soundcloud = require('./src/adapters/soundcloud');
+
+var _soundcloud2 = _interopRequireDefault(_soundcloud);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_rest2.default.registerAdapter('test');
+_core2.default.registerAdapter(_soundcloud2.default);
 
-var bot = _rest2.default.new({
+var bot = _core2.default.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom
   // adapter: 'custom',
   // adapterSettings: {

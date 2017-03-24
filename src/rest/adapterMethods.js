@@ -1,6 +1,6 @@
 export function adapterIsValid(adapter) {
-  if (!adapter.authorize) {
-    return new Error('Adapter should contain `authorize` method');
+  if (!adapter.hasOwnProperty('authorize')) {
+    return new Error('Adapter should contain `authorize` method')
   }
 
   return true

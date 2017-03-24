@@ -1,6 +1,7 @@
-import rest from './src/rest'
+import rest from './src/core'
+import soundcloudAdapter from './src/adapters/soundcloud'
 
-rest.registerAdapter('test')
+rest.registerAdapter(soundcloudAdapter)
 
 var bot = rest.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom

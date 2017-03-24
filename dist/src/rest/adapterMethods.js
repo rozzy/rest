@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.adapterIsValid = adapterIsValid;
 function adapterIsValid(adapter) {
-  if (!adapter.authorize) {
+  if (!adapter.hasOwnProperty('authorize')) {
     return new Error('Adapter should contain `authorize` method');
   }
 

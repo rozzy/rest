@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon -x npm run serve",
     "serve": "babel-node index.js -b babel-preset-es2015",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --require babel-register test/*.test.js --harmony --check-leaks",
     "prepublish": "npm run build",
     "build": "babel . --presets babel-preset-es2015 --out-dir dist --ignore node_modules,.git"
   },
@@ -19,6 +19,12 @@
     "rest-api",
     "nodejs"
   ],
+  "babel": {
+    "presets": [
+      "stage-3",
+      "latest"
+    ]
+  },
   "author": "Nikita Nikitin",
   "license": "ISC",
   "bugs": {
@@ -27,7 +33,11 @@
   "homepage": "https://github.com/rozzy/rest#readme",
   "devDependencies": {
     "babel-cli": "^6.24.0",
+    "babel-core": "^6.24.0",
     "babel-preset-es2015": "^6.24.0",
-    "nodemon": "^1.11.0"
+    "babel-register": "^6.24.0",
+    "mocha": "^3.2.0",
+    "nodemon": "^1.11.0",
+    "should": "^11.2.1"
   }
 }
