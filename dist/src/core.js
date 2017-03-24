@@ -39,9 +39,9 @@ exports.default = function () {
       throw new TypeError('Adapter must return a valid object');
     }
 
-    var adapterError = void 0;
-    if (!(adapterError = _adapterMethods.adapterIsValid.call(rest, constructedAdapter))) {
-      throw adapterError;
+    var adapterContainsErrors = _adapterMethods.adapterIsValid.call(rest, constructedAdapter);
+    if (adapterContainsErrors instanceof Error) {
+      throw adapterContainsErrors;
     }
 
     rest.adapters = [].concat(_toConsumableArray(rest.adapters), [constructedAdapter]);
