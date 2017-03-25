@@ -29,7 +29,7 @@ describe('Checking adapters:', () => {
 
       it('when there is no `name` specified', () => {
         let executable = () => {
-          rest.registerAdapter(function () { return { authorize: () => {} } })
+          rest.registerAdapter(function () { return { authorize() {} } })
         }
 
         assert.throws(executable, /Adapter should contain the "name" property/)
@@ -73,7 +73,7 @@ describe('Checking adapters:', () => {
         rest.registerAdapter(function () {
           return {
             name: 'testAdapter',
-            authorize: () => console.log('authorized')
+            authorize() { console.log('authorized') }
           }
         })
       }
@@ -84,7 +84,7 @@ describe('Checking adapters:', () => {
     it('should add a new adapter to the list of all adapters', () => {
       let newAdapter = {
         name: 'testAdapter2',
-        authorize: () => console.log('authorized')
+        authorize() { console.log('authorized') }
       }
 
       rest.registerAdapter(() => newAdapter)
