@@ -42,7 +42,7 @@ export default (function () {
   /*
     new
     creates a new instance of the middleware with specified settings
-    returns a new instance
+    returns the instance
   */
   rest.new = instanceSettings => {
     let instance = {
