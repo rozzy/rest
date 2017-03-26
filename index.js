@@ -5,10 +5,6 @@ rest.registerAdapter(soundcloudAdapter)
 
 var bot = rest.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom
-  // adapter: 'custom',
-  // adapterSettings: {
-  //   name: ''
-  // }
   threads: 1,
   authorization: {
     clientId: process.env.CLIENT_ID,

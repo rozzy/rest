@@ -13,23 +13,3 @@ export function adapterIsValid(adapter) {
 
   return true
 }
-
-export function findAdapter(adapterName) {
-  let foundAdapterInArray = this.adapters.find(adapter => {
-    return adapter.name === adapterName
-  })
-
-  if (!foundAdapterInArray) {
-    throw new Error(`There is no adapter registered with the name "${adapterName}"`)
-  }
-
-  return foundAdapterInArray
-}
-
-export function useAdapter(adapterName) {
-  return this._adapter = this.findAdapter(adapterName), this
-}
-
-export const instanceMethods = {
-  findAdapter, useAdapter,
-}

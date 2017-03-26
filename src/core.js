@@ -1,13 +1,16 @@
-import { run } from './rest/instanceMethods'
-import { adapterIsValid, instanceMethods } from './rest/adapterMethods'
+import * as instanceMethods from './rest/instanceMethods'
+import { adapterIsValid } from './rest/adapterMethods'
 import authModule from './rest/auth'
 
 export default (function () {
   let defaultSettings = { // default rest settings
     adapter: 'custom', // @string: set of rules for certain API
     threads: 1, // @integer: maximum number of threads app will have
-    authorization: null, // @object: authorization data for adapter API
+    authorization: { // @object: authorization data for adapter API
+      manual: false
+    },
     limits: null, // @object: set of rules to avoid bans and blocks
+    autoAuth: true, // @bool: when initializing a new instance, runs auth methods
   }
 
   let rest = {} // global instance of rest
@@ -49,7 +52,7 @@ export default (function () {
     let instance = {
       adapters: rest.adapters,
 
-      run
+      ...instanceMethods
     }
 
     // extending with authorization module
@@ -57,6 +60,10 @@ export default (function () {
     instance.options = Object.assign({}, defaultSettings, instanceSettings)
 
     instance.useAdapter(instanceSettings.adapter)
+
+    if (instance.options.authorization && !instance.options.authorization.manual) {
+      instance.authorize()
+    }
 
     return instance
   }

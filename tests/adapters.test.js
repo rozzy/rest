@@ -2,8 +2,34 @@ import assert from 'assert'
 
 import rest from '../src/core'
 
-describe('Checking adapters:', () => {
+describe('Testing adapters:', () => {
   describe('rest.registerAdapter()', () => {
+    describe('should pass', () => {
+      it('when passing a proper authorize function and name', () => {
+        let executable = () => {
+          rest.registerAdapter(function () {
+            return {
+              name: 'testAdapter',
+              authorize() { console.log('authorized') }
+            }
+          })
+        }
+
+        assert.doesNotThrow(executable, Error)
+      })
+    })
+
+    it('should add a new adapter to the list of all adapters', () => {
+      let newAdapter = {
+        name: 'testAdapter2',
+        authorize() { console.log('authorized') }
+      }
+
+      rest.registerAdapter(() => newAdapter)
+
+      assert.notEqual(rest.adapters.indexOf(newAdapter), -1)
+    })
+
     describe('should throw an error', () => {
       it('when passing not a function', () => {
         let executable = rest.registerAdapter
@@ -66,30 +92,6 @@ describe('Checking adapters:', () => {
         assert.throws(executable, /"authorize" method must be a function/)
         assert.equal(rest.adapters.indexOf(brokenAdapter), -1)
       })
-    })
-
-    it('should execute without any errors when passing a proper function', () => {
-      let executable = () => {
-        rest.registerAdapter(function () {
-          return {
-            name: 'testAdapter',
-            authorize() { console.log('authorized') }
-          }
-        })
-      }
-
-      assert.doesNotThrow(executable, Error)
-    })
-
-    it('should add a new adapter to the list of all adapters', () => {
-      let newAdapter = {
-        name: 'testAdapter2',
-        authorize() { console.log('authorized') }
-      }
-
-      rest.registerAdapter(() => newAdapter)
-
-      assert.notEqual(rest.adapters.indexOf(newAdapter), -1)
     })
   })
 })
