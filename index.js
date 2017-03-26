@@ -10,7 +10,7 @@ var bot = rest.new({
   //   name: ''
   // }
   threads: 1,
-  credentials: {
+  authorization: {
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
     redirectURI: 'http://localhost:8000/authorize'
@@ -20,6 +20,5 @@ var bot = rest.new({
     period: 86400
   }
 })
-
 
 bot.run()
