@@ -17,4 +17,10 @@ var bot = rest.new({
   }
 })
 
-bot.run()
+bot
+  .loadPatterns((restSettings, instance) => {
+    return [{
+      sequence: [null, 1, 'test']
+    }]
+  })
+  .run()
