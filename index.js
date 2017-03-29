@@ -18,9 +18,37 @@ var bot = rest.new({
 })
 
 bot
+  .registerMethods((restSettings, instance) => {
+    return function testmethods() {
+      return true
+    }
+  })
+  .registerMethods((restSettings, instance) => {
+    return {
+      listenNext(prevResolution, index, done) {
+        if (instance.data.loaded <= instance.data.available) {
+          return ['loadNext', 'listenNext']
+        } else {
+          let track = foundNextTrack(instance)
+          listenToTheTrack(track)
+
+          return true
+        }
+      }
+    }
+  })
   .loadPatterns((restSettings, instance) => {
     return [{
-      sequence: [null, 1, 'test']
+      name: 'explore',
+      sequence: ['chooseCriterias', (prevResolution, index, done) => { return false }, '']
     }]
+  })
+  .registerMethods((restSettings, instance) => {
+    return {
+      chooseCriterias(prevResolution, index, done) {
+        console.log('chooseCriterias ...', prevResolution, index)
+        setTimeout(done, 1000)
+      }
+    }
   })
   .run()

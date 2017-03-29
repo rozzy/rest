@@ -7,10 +7,9 @@ export default (function () {
     adapter: 'custom', // @string: set of rules for certain API
     threads: 1, // @integer: maximum number of threads app will have
     authorization: { // @object: authorization data for adapter API
-      manual: false
+      manual: false // @bool: tries to authorize on start, when true
     },
     limits: null, // @object: set of rules to avoid bans and blocks
-    autoAuth: true, // @bool: when initializing a new instance, runs auth methods
   }
 
   let rest = {} // global instance of rest
