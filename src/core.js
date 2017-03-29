@@ -1,4 +1,4 @@
-import * as instanceMethods from './rest/instanceMethods'
+import { useAdapter, registerMethods, loadPatterns, run } from './rest/instanceMethods'
 import { adapterIsValid } from './rest/adapterMethods'
 import authModule from './rest/auth'
 
@@ -51,11 +51,11 @@ export default (function () {
     let instance = {
       adapters: rest.adapters,
 
-      ...instanceMethods
+      run, useAdapter, loadPatterns, registerMethods
     }
 
     // extending with authorization module
-    instance = Object.assign({}, instance, authModule, instanceMethods)
+    instance = Object.assign({}, instance, authModule)
     instance.options = Object.assign({}, defaultSettings, instanceSettings)
 
     instance.useAdapter(instanceSettings.adapter)

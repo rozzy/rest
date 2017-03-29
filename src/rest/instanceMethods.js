@@ -1,6 +1,10 @@
 import { isFunction, isArray, isObject } from 'lodash/core'
 
-function findAdapter(adapters, adapterName) {
+export function findAdapter(adapters, adapterName) {
+  if (!adapters) {
+    throw new Error('There are no registered adapters')
+  }
+
   if (!adapterName) {
     throw new Error('Pass an adapter name to the "findAdapter" method')
   }
@@ -24,18 +28,14 @@ export function useAdapter(adapterName) {
   return this._adapter = findAdapter(this.adapters, adapterName), this
 }
 
-function isActionRegistered(action) {
-  let isString = typeof action === 'string'
-
-  return !this._methods || (
-    isString && (
-      !this._methods[action] ||
-      typeof this._methods[action] !== 'function'
-    )
+export function isActionRegistered(action) {
+  return !!this && !!this._methods && typeof action === 'string' && (
+    !!this._methods[action] &&
+    isFunction(this._methods[action])
   )
 }
 
-function checkSequenceAction(action) {
+export function checkSequenceAction(action) {
   let isString = typeof action === 'string'
   let isFunc = isFunction(action)
 
@@ -50,11 +50,11 @@ function checkSequenceAction(action) {
   return true
 }
 
-function checkPatternSequence(sequence, context) {
+export function checkPatternSequence(sequence, context) {
   return sequence.map(checkSequenceAction.bind(context))
 }
 
-function checkPattern(pattern) {
+export function checkPattern(pattern) {
   if (!isObject(pattern)) {
     throw new TypeError('Pattern should be a plain object')
   }
@@ -72,11 +72,11 @@ function checkPattern(pattern) {
   return true
 }
 
-function checkAllPatterns(patterns, context) {
+export function checkAllPatterns(patterns, context) {
   return patterns.forEach(checkPattern.bind(context))
 }
 
-function registerPatterns(patterns) {
+export function registerPatterns(patterns) {
   if (!this._patterns) {
     this._patterns = patterns
   } else if (isArray(this._patterns)) {
