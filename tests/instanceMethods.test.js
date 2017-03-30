@@ -1,7 +1,7 @@
 import assert from 'assert'
 
 import rest from '../src/core'
-import { findAdapter, useAdapter, isActionRegistered } from '../src/rest/instanceMethods'
+import { findAdapter, useAdapter, isActionRegistered, checkSequenceAction } from '../src/rest/instanceMethods'
 
 let existingAdapter = {
   name: 'soundcloud',
@@ -25,6 +25,7 @@ describe('Testing instance methods:', () => {
         assert.doesNotThrow(executable, Error)
       })
     })
+
     describe('it should throw an error', () => {
       it('when passing no name argument', () => {
         let executable = () => {
@@ -115,11 +116,13 @@ describe('Testing instance methods:', () => {
 
         assert.equal(result, false)
       })
+
       it('when passing non existing method', () => {
         let result = isActionRegistered.call(instance, 'randomMethodName')
 
         assert.equal(result, false)
       })
+
       it('when passing not a string', () => {
         let boolResult = isActionRegistered.call(instance, true)
         let objectResult = isActionRegistered.call(instance, {})
@@ -136,6 +139,86 @@ describe('Testing instance methods:', () => {
         assert.equal(arrayResult, false)
         assert.equal(nullResult, false)
         assert.equal(nanResult, false)
+      })
+    })
+  })
+
+  describe('private checkSequenceAction', () => {
+    let instance = rest.new({
+      adapter: existingAdapter.name
+    })
+
+    instance.registerMethods(restSettings => {
+      return function someRegisteredMethod() {
+        return true
+      }
+    })
+
+    describe('it should return true', () => {
+      it('when passing an anonymous function', () => {
+        let executable = () => (
+          checkSequenceAction.call(instance, restSettings => {})
+        )
+
+        assert.doesNotThrow(executable, Error)
+        assert.ok(executable())
+      })
+
+      it('when passing an existing method name', () => {
+        let executable = () => (
+          checkSequenceAction.call(instance, 'someRegisteredMethod')
+        )
+
+        assert.doesNotThrow(executable, Error)
+        assert.ok(executable())
+      })
+    })
+
+    describe('it should throw an error', () => {
+      it('when passing no argument', () => {
+        let executable = () => (
+          checkSequenceAction.call(instance)
+        )
+
+        assert.throws(executable, /Sequence could only contain strings or functions/)
+      })
+
+      it('when passing not a string and not a function', () => {
+        let executableArray = () => (
+          checkSequenceAction.call(instance, [])
+        )
+        let executableObject = () => (
+          checkSequenceAction.call(instance, {})
+        )
+        let executableNull = () => (
+          checkSequenceAction.call(instance, null)
+        )
+        let executableNumber = () => (
+          checkSequenceAction.call(instance, 12)
+        )
+        let executableBoolean = () => (
+          checkSequenceAction.call(instance, true)
+        )
+        let executableNaN = () => (
+          checkSequenceAction.call(instance, NaN)
+        )
+
+        let error = /Sequence could only contain strings or functions/
+
+        assert.throws(executableArray, error)
+        assert.throws(executableObject, error)
+        assert.throws(executableNull, error)
+        assert.throws(executableNumber, error)
+        assert.throws(executableBoolean, error)
+        assert.throws(executableNaN, error)
+      })
+
+      it('when passing a method that doesn\'t exist', () => {
+        let executable = () => (
+          checkSequenceAction.call(instance, 'someRandomMethod')
+        )
+
+        assert.throws(executable, /There is no registered action/)
       })
     })
   })
