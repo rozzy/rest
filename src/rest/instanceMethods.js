@@ -51,6 +51,10 @@ export function checkSequenceAction(action) {
 }
 
 export function checkPatternSequence(sequence, context) {
+  if (!sequence || !sequence.map) {
+    throw new TypeError('"sequence" should be an array of sequences')
+  }
+
   return sequence.map(checkSequenceAction.bind(context))
 }
 
@@ -124,7 +128,7 @@ export function loadPatterns(patternsGenerator) {
     throw new TypeError(typeErrorString)
   }
 
-  checkAllPatterns(patterns, this)
+  // checkAllPatterns(patterns, this) TODO check patterns on run
   registerPatterns.call(this, patterns)
 
   return this
@@ -133,6 +137,8 @@ export function loadPatterns(patternsGenerator) {
 export function run(str) {
   this.runned = true
 
+
+  // checkAllPatterns(patterns, this) TODO check patterns on run
   console.log(this)
 
   return this

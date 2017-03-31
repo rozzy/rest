@@ -39,25 +39,25 @@ bot
   })
   .loadPatterns((restSettings, instance) => {
     return [
-      {
-        name: 'main',
-        sequence: [
-          ':explore',
-          (prevResolution, index, done) => {
-            if (prevResolution === true) {
-              return ':listenToNewTracks'
-            } else {
-              return false
-            }
-          },
-          (prevResolution, index, done, sequencer) => {
-            if (prevResolution === true) return sequencer.repeat()
-          }
-        ]
-      },
+      // {
+      //   name: 'main',
+      //   sequence: [
+      //     ':explore',
+      //     (prevResolution, index, done) => {
+      //       if (prevResolution === true) {
+      //         return ':listenToNewTracks'
+      //       } else {
+      //         return false
+      //       }
+      //     },
+      //     (prevResolution, index, done, sequencer) => {
+      //       if (prevResolution === true) return sequencer.repeat()
+      //     }
+      //   ]
+      // },
       {
         name: 'explore',
-        sequence: ['chooseCriterias', 'findTrackToStartExplore', 'collectExploreData']
+        sequence: ['listenNext']
       }
     ]
   })

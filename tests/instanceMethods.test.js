@@ -1,7 +1,7 @@
 import assert from 'assert'
 
 import rest from '../src/core'
-import { findAdapter, useAdapter, isActionRegistered, checkSequenceAction } from '../src/rest/instanceMethods'
+import { findAdapter, useAdapter, isActionRegistered, checkSequenceAction, checkPatternSequence } from '../src/rest/instanceMethods'
 
 let existingAdapter = {
   name: 'soundcloud',
@@ -219,6 +219,51 @@ describe('Testing instance methods:', () => {
         )
 
         assert.throws(executable, /There is no registered action/)
+      })
+    })
+  })
+
+  describe('private checkPatternSequence', () => {
+    let patterns = [{ name: 'test', sequence: ['someRegisteredMethod'] }]
+    let instance = rest.new({
+      adapter: existingAdapter.name
+    })
+
+    instance
+      .registerMethods(restSettings => {
+        return function someRegisteredMethod() {
+          return true
+        }
+      })
+      .loadPatterns(restSettings => patterns)
+
+    describe('it should pass', () => {
+      it('when array of existing actions passed', () => {
+        let executable = () => {
+          checkPatternSequence(patterns[0].sequence, instance)
+        }
+
+        assert.doesNotThrow(executable, Error)
+      })
+    })
+
+    describe('it should throw an error', () => {
+      it('when there is no sequence passed', () => {
+        let executable = () => {
+          checkPatternSequence(undefined, instance)
+        }
+
+        assert.throws(executable, /"sequence" should be an array of sequences/)
+      })
+
+      it('when the sequence is not an array', () => {
+        let executable = (subject) => () => {
+          checkPatternSequence(subject, instance)
+        }
+
+        [12, null, NaN, true, {}, 'test'].forEach(() => {
+          assert.throws(executable(), /"sequence" should be an array of sequences/)
+        })
       })
     })
   })

@@ -14,7 +14,7 @@ function soundcloudAdapter(restSettings) {
     },
 
     authorize: function authorize(credentials, settings, instance) {
-      console.log('@authorize', [restSettings, credentials, settings], instance);
+      // console.log('@authorize', [restSettings, credentials, settings], instance, "\n -------------\n")
     },
     deauthorize: function deauthorize(credentials, settings, instance) {
       console.log('@deauthorize', [restSettings, credentials, settings], instance);
