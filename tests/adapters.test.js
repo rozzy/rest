@@ -10,7 +10,9 @@ describe('Testing adapters:', () => {
           rest.registerAdapter(function () {
             return {
               name: 'testAdapter',
-              authorize() { console.log('authorized') }
+              methods: {
+                authorize() { console.log('authorized') }
+              }
             }
           })
         }
@@ -22,7 +24,9 @@ describe('Testing adapters:', () => {
     it('should add a new adapter to the list of all adapters', () => {
       let newAdapter = {
         name: 'testAdapter2',
-        authorize() { console.log('authorized') }
+        methods: {
+          authorize() { console.log('authorized') }
+        }
       }
 
       rest.registerAdapter(() => newAdapter)
@@ -45,9 +49,17 @@ describe('Testing adapters:', () => {
         assert.throws(executable, /Adapter must return a valid object/)
       })
 
-      it('when there is no `authorize` method in adapter constructor', () => {
+      it('when there is no `methods` object in adapter constructor', () => {
         let executable = () => {
           rest.registerAdapter(function () { return { name: 'test' } })
+        }
+
+        assert.throws(executable, /Adapter should contain "methods" object/)
+      })
+
+      it('when there is no `authorize` method in adapter constructor', () => {
+        let executable = () => {
+          rest.registerAdapter(function () { return { name: 'test', methods: {} } })
         }
 
         assert.throws(executable, /Adapter should contain "authorize" method/)
@@ -73,8 +85,18 @@ describe('Testing adapters:', () => {
         assert.equal(rest.adapters.indexOf(brokenAdapter), -1)
       })
 
-      it('if there is no authorize method', () => {
+      it('if there is no methods object', () => {
         let brokenAdapter = { name: 'brokenAdapter1' }
+        let executable = () => {
+          rest.registerAdapter(function () { return brokenAdapter })
+        }
+
+        assert.throws(executable, /Adapter should contain "methods" object/)
+        assert.equal(rest.adapters.indexOf(brokenAdapter), -1)
+      })
+
+      it('if there is no authorize method', () => {
+        let brokenAdapter = { name: 'brokenAdapter1', methods: {} }
         let executable = () => {
           rest.registerAdapter(function () { return brokenAdapter })
         }
@@ -84,7 +106,12 @@ describe('Testing adapters:', () => {
       })
 
       it('if the authorize method is not executable', () => {
-        let brokenAdapter = { name: 'brokenAdapter2', authorize: undefined }
+        let brokenAdapter = {
+          name: 'brokenAdapter2',
+          methods: {
+            authorize: undefined
+          }
+        }
         let executable = () => {
           rest.registerAdapter(function () { return brokenAdapter })
         }

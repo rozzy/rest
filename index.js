@@ -19,8 +19,8 @@ var bot = rest.new({
 
 bot
   .registerMethods((restSettings, instance) => {
-    return function testmethods() {
-      return true
+    return function sauthorize() {
+      return console.log('@@@@auth registered'), false
     }
   })
   .registerMethods((restSettings, instance) => {

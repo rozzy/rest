@@ -1,5 +1,5 @@
-import { useAdapter, registerMethods, loadPatterns, run } from './rest/instanceMethods'
-import { adapterIsValid } from './rest/adapterMethods'
+import { registerMethods, loadPatterns, run } from './rest/instanceMethods'
+import { useAdapter, adapterIsValid } from './rest/adapterMethods'
 import authModule from './rest/auth'
 
 export default (function () {
@@ -50,6 +50,7 @@ export default (function () {
   rest.new = instanceSettings => {
     let instance = {
       adapters: rest.adapters,
+      _methods: {},
 
       run, useAdapter, loadPatterns, registerMethods
     }
@@ -59,10 +60,6 @@ export default (function () {
     instance.options = Object.assign({}, defaultSettings, instanceSettings)
 
     instance.useAdapter(instanceSettings.adapter)
-
-    if (instance.options.authorization && !instance.options.authorization.manual) {
-      instance.authorize()
-    }
 
     return instance
   }

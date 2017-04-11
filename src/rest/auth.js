@@ -1,6 +1,9 @@
 let auth = {
   authorize() {
-    return this._adapter.authorize(
+    let method = this._methods.authorize || this._adapter.methods.authorize
+
+    return method.call(
+      this,
       this.options.authorization,
       this.options,
       this
@@ -8,7 +11,10 @@ let auth = {
   },
 
   deauthorize() {
-    return this._adapter.deauthorize(
+    let method = this._methods.deauthorize || this._adapter.methods.deauthorize
+
+    return method.call(
+      this,
       this.options.authorization,
       this.options,
       this

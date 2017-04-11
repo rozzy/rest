@@ -1,33 +1,5 @@
 import { isFunction, isArray, isObject } from 'lodash/core'
 
-export function findAdapter(adapters, adapterName) {
-  if (!adapters) {
-    throw new Error('There are no registered adapters')
-  }
-
-  if (!adapterName) {
-    throw new Error('Pass an adapter name to the "findAdapter" method')
-  }
-
-  let foundAdapterInArray = adapters.find(adapter => {
-    return adapter.name === adapterName
-  })
-
-  if (!foundAdapterInArray) {
-    throw new Error(`There is no adapter registered with the name "${adapterName}"`)
-  }
-
-  return foundAdapterInArray
-}
-
-export function useAdapter(adapterName) {
-  if (!adapterName) {
-    throw new Error('Pass an adapter name to the "useAdapter" method')
-  }
-
-  return this._adapter = findAdapter(this.adapters, adapterName), this
-}
-
 export function isActionRegistered(action) {
   return !!this && !!this._methods && typeof action === 'string' && (
     !!this._methods[action] &&
@@ -139,6 +111,9 @@ export function run(str) {
 
 
   // checkAllPatterns(patterns, this) TODO check patterns on run
+  if (this.options.authorization && !this.options.authorization.manual) {
+    this.authorize()
+  }
   console.log(this)
 
   return this

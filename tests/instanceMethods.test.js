@@ -1,11 +1,14 @@
 import assert from 'assert'
 
 import rest from '../src/core'
-import { findAdapter, useAdapter, isActionRegistered, checkSequenceAction, checkPatternSequence } from '../src/rest/instanceMethods'
+import { isActionRegistered, checkSequenceAction, checkPatternSequence } from '../src/rest/instanceMethods'
+import { findAdapter, useAdapter } from '../src/rest/adapterMethods'
 
 let existingAdapter = {
   name: 'soundcloud',
-  authorize() {}
+  methods: {
+    authorize() {}
+  }
 }
 
 rest.registerAdapter(restSettings => existingAdapter)

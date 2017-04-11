@@ -7,12 +7,15 @@ export default function soundcloudAdapter(restSettings) {
       period: 86400
     },
 
-    authorize(credentials, settings, instance) {
-      // console.log('@authorize', [restSettings, credentials, settings], instance, "\n -------------\n")
-    },
+    methods: {
+      authorize(credentials, settings, instance) {
+        console.log('##### test')
+        // console.log('@authorize', [restSettings, credentials, settings], instance, "\n -------------\n")
+      },
 
-    deauthorize(credentials, settings, instance) {
-      console.log('@deauthorize', [restSettings, credentials, settings], instance)
+      deauthorize(credentials, settings, instance) {
+        console.log('@deauthorize', [restSettings, credentials, settings], instance)
+      }
     }
   }
 }
