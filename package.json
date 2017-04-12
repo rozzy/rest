@@ -47,6 +47,7 @@
     "should": "^11.2.1"
   },
   "dependencies": {
+    "express": "^4.15.2",
     "node-soundcloud": "0.0.6"
   }
 }

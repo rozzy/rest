@@ -16,15 +16,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 _core2.default.registerAdapter(_soundcloud2.default);
 
-console.log(_credits2.default);
-
 var bot = _core2.default.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom
   threads: 1,
   authorization: {
     clientId: _credits2.default.sc.CLIENT_ID,
     clientSecret: _credits2.default.sc.CLIENT_SECRET,
-    redirectURI: 'http://localhost:8000/authorize'
+    redirectURI: 'http://localhost:8080/callback.html'
   },
   limits: {
     callsPerPeriod: 15000,
@@ -34,7 +32,8 @@ var bot = _core2.default.new({
 
 bot.registerMethods(function (restSettings, instance) {
   return function authorize() {
-    return console.log('@@@@auth registered'), false;
+    // example of calling super method from the adapter
+    this._adapter.methods.authorize.apply(this, arguments);
   };
 }).registerMethods(function (restSettings, instance) {
   return {

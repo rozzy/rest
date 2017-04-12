@@ -5,15 +5,13 @@ import credits from './credits'
 
 rest.registerAdapter(soundcloudAdapter)
 
-console.log(credits)
-
 var bot = rest.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom
   threads: 1,
   authorization: {
     clientId: credits.sc.CLIENT_ID,
     clientSecret: credits.sc.CLIENT_SECRET,
-    redirectURI: 'http://localhost:8000/authorize'
+    redirectURI: 'http://localhost:8080/callback.html',
   },
   limits: {
     callsPerPeriod: 15000,
@@ -24,7 +22,8 @@ var bot = rest.new({
 bot
   .registerMethods((restSettings, instance) => {
     return function authorize() {
-      return console.log('@@@@auth registered'), false
+      // example of calling super method from the adapter
+      this._adapter.methods.authorize.apply(this, arguments)
     }
   })
   .registerMethods((restSettings, instance) => {

@@ -1,6 +1,15 @@
 import SC from 'node-soundcloud'
+import createServer from '../rest/quickServer'
 
-console.log(SC)
+export function getSoundcloudUrl(credentials) {
+  SC.init({
+    id: credentials.clientId,
+    secret: credentials.clientSecret,
+    uri: credentials.redirectURI
+  })
+
+  return SC.getConnectUrl()
+}
 
 export default function soundcloudAdapter(restSettings) {
   return {
@@ -13,13 +22,13 @@ export default function soundcloudAdapter(restSettings) {
 
     methods: {
       authorize(credentials, settings, instance) {
-        SC.init({
-          id: credentials.clientId,
-          secret: credentials.clientSecret,
-          uri: credentials.redirectURI
-        })
+        let authLink = getSoundcloudUrl(credentials)
+        let spawn = require('child_process').spawn
 
-        return SC.getConnectUrl()
+        createServer(
+          instance.options.authorization.redirectURI
+        )
+        // spawn('open', [authLink])
       },
 
       deauthorize(credentials, settings, instance) {

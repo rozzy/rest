@@ -114,7 +114,7 @@ export function run(str) {
   if (this.options.authorization && !this.options.authorization.manual) {
     this.authorize()
   }
-  console.log(this)
+  // console.log(this)
 
   return this
 }

@@ -3,15 +3,28 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.getSoundcloudUrl = getSoundcloudUrl;
 exports.default = soundcloudAdapter;
 
 var _nodeSoundcloud = require('node-soundcloud');
 
 var _nodeSoundcloud2 = _interopRequireDefault(_nodeSoundcloud);
 
+var _quickServer = require('../rest/quickServer');
+
+var _quickServer2 = _interopRequireDefault(_quickServer);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-console.log(_nodeSoundcloud2.default);
+function getSoundcloudUrl(credentials) {
+  _nodeSoundcloud2.default.init({
+    id: credentials.clientId,
+    secret: credentials.clientSecret,
+    uri: credentials.redirectURI
+  });
+
+  return _nodeSoundcloud2.default.getConnectUrl();
+}
 
 function soundcloudAdapter(restSettings) {
   return {
@@ -24,13 +37,11 @@ function soundcloudAdapter(restSettings) {
 
     methods: {
       authorize: function authorize(credentials, settings, instance) {
-        _nodeSoundcloud2.default.init({
-          id: credentials.clientId,
-          secret: credentials.clientSecret,
-          uri: credentials.redirectURI
-        });
+        var url = getSoundcloudUrl(credentials);
+        var spawn = require('child_process').spawn;
 
-        return _nodeSoundcloud2.default.getConnectUrl();
+        (0, _quickServer2.default)(function (req, res) {});
+        spawn('open', [url]);
       },
       deauthorize: function deauthorize(credentials, settings, instance) {
         console.log('@deauthorize', [restSettings, credentials, settings], instance);
