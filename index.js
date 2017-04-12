@@ -1,14 +1,18 @@
 import rest from './src/core'
 import soundcloudAdapter from './src/adapters/soundcloud'
 
+import credits from './credits'
+
 rest.registerAdapter(soundcloudAdapter)
+
+console.log(credits)
 
 var bot = rest.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom
   threads: 1,
   authorization: {
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
+    clientId: credits.sc.CLIENT_ID,
+    clientSecret: credits.sc.CLIENT_SECRET,
     redirectURI: 'http://localhost:8000/authorize'
   },
   limits: {
@@ -19,7 +23,7 @@ var bot = rest.new({
 
 bot
   .registerMethods((restSettings, instance) => {
-    return function sauthorize() {
+    return function authorize() {
       return console.log('@@@@auth registered'), false
     }
   })

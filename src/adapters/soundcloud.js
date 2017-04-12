@@ -1,3 +1,7 @@
+import SC from 'node-soundcloud'
+
+console.log(SC)
+
 export default function soundcloudAdapter(restSettings) {
   return {
     name: 'soundcloud',
@@ -9,8 +13,13 @@ export default function soundcloudAdapter(restSettings) {
 
     methods: {
       authorize(credentials, settings, instance) {
-        console.log('##### test')
-        // console.log('@authorize', [restSettings, credentials, settings], instance, "\n -------------\n")
+        SC.init({
+          id: credentials.clientId,
+          secret: credentials.clientSecret,
+          uri: credentials.redirectURI
+        })
+
+        return SC.getConnectUrl()
       },
 
       deauthorize(credentials, settings, instance) {

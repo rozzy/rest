@@ -18,8 +18,10 @@ describe('Testing adapters:', function () {
           _core2.default.registerAdapter(function () {
             return {
               name: 'testAdapter',
-              authorize: function authorize() {
-                console.log('authorized');
+              methods: {
+                authorize: function authorize() {
+                  console.log('authorized');
+                }
               }
             };
           });
@@ -32,8 +34,10 @@ describe('Testing adapters:', function () {
     it('should add a new adapter to the list of all adapters', function () {
       var newAdapter = {
         name: 'testAdapter2',
-        authorize: function authorize() {
-          console.log('authorized');
+        methods: {
+          authorize: function authorize() {
+            console.log('authorized');
+          }
         }
       };
 
@@ -59,10 +63,20 @@ describe('Testing adapters:', function () {
         _assert2.default.throws(executable, /Adapter must return a valid object/);
       });
 
-      it('when there is no `authorize` method in adapter constructor', function () {
+      it('when there is no `methods` object in adapter constructor', function () {
         var executable = function executable() {
           _core2.default.registerAdapter(function () {
             return { name: 'test' };
+          });
+        };
+
+        _assert2.default.throws(executable, /Adapter should contain "methods" object/);
+      });
+
+      it('when there is no `authorize` method in adapter constructor', function () {
+        var executable = function executable() {
+          _core2.default.registerAdapter(function () {
+            return { name: 'test', methods: {} };
           });
         };
 
@@ -97,8 +111,20 @@ describe('Testing adapters:', function () {
         _assert2.default.equal(_core2.default.adapters.indexOf(brokenAdapter), -1);
       });
 
-      it('if there is no authorize method', function () {
+      it('if there is no methods object', function () {
         var brokenAdapter = { name: 'brokenAdapter1' };
+        var executable = function executable() {
+          _core2.default.registerAdapter(function () {
+            return brokenAdapter;
+          });
+        };
+
+        _assert2.default.throws(executable, /Adapter should contain "methods" object/);
+        _assert2.default.equal(_core2.default.adapters.indexOf(brokenAdapter), -1);
+      });
+
+      it('if there is no authorize method', function () {
+        var brokenAdapter = { name: 'brokenAdapter1', methods: {} };
         var executable = function executable() {
           _core2.default.registerAdapter(function () {
             return brokenAdapter;
@@ -110,7 +136,12 @@ describe('Testing adapters:', function () {
       });
 
       it('if the authorize method is not executable', function () {
-        var brokenAdapter = { name: 'brokenAdapter2', authorize: undefined };
+        var brokenAdapter = {
+          name: 'brokenAdapter2',
+          methods: {
+            authorize: undefined
+          }
+        };
         var executable = function executable() {
           _core2.default.registerAdapter(function () {
             return brokenAdapter;

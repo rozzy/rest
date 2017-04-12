@@ -65,8 +65,9 @@ exports.default = function () {
   rest.new = function (instanceSettings) {
     var instance = {
       adapters: rest.adapters,
+      _methods: {},
 
-      run: _instanceMethods.run, useAdapter: _instanceMethods.useAdapter, loadPatterns: _instanceMethods.loadPatterns, registerMethods: _instanceMethods.registerMethods
+      run: _instanceMethods.run, useAdapter: _adapterMethods.useAdapter, loadPatterns: _instanceMethods.loadPatterns, registerMethods: _instanceMethods.registerMethods
     };
 
     // extending with authorization module
@@ -74,10 +75,6 @@ exports.default = function () {
     instance.options = Object.assign({}, defaultSettings, instanceSettings);
 
     instance.useAdapter(instanceSettings.adapter);
-
-    if (instance.options.authorization && !instance.options.authorization.manual) {
-      instance.authorize();
-    }
 
     return instance;
   };

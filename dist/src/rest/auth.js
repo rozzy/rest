@@ -5,10 +5,14 @@ Object.defineProperty(exports, "__esModule", {
 });
 var auth = {
   authorize: function authorize() {
-    return this._adapter.authorize(this.options.authorization, this.options, this);
+    var method = this._methods.authorize || this._adapter.methods.authorize;
+
+    return method.call(this, this.options.authorization, this.options, this);
   },
   deauthorize: function deauthorize() {
-    return this._adapter.deauthorize(this.options.authorization, this.options, this);
+    var method = this._methods.deauthorize || this._adapter.methods.deauthorize;
+
+    return method.call(this, this.options.authorization, this.options, this);
   }
 };
 

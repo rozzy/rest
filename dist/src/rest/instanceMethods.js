@@ -3,8 +3,6 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.findAdapter = findAdapter;
-exports.useAdapter = useAdapter;
 exports.isActionRegistered = isActionRegistered;
 exports.checkSequenceAction = checkSequenceAction;
 exports.checkPatternSequence = checkPatternSequence;
@@ -18,34 +16,6 @@ exports.run = run;
 var _core = require('lodash/core');
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function findAdapter(adapters, adapterName) {
-  if (!adapters) {
-    throw new Error('There are no registered adapters');
-  }
-
-  if (!adapterName) {
-    throw new Error('Pass an adapter name to the "findAdapter" method');
-  }
-
-  var foundAdapterInArray = adapters.find(function (adapter) {
-    return adapter.name === adapterName;
-  });
-
-  if (!foundAdapterInArray) {
-    throw new Error('There is no adapter registered with the name "' + adapterName + '"');
-  }
-
-  return foundAdapterInArray;
-}
-
-function useAdapter(adapterName) {
-  if (!adapterName) {
-    throw new Error('Pass an adapter name to the "useAdapter" method');
-  }
-
-  return this._adapter = findAdapter(this.adapters, adapterName), this;
-}
 
 function isActionRegistered(action) {
   return !!this && !!this._methods && typeof action === 'string' && !!this._methods[action] && (0, _core.isFunction)(this._methods[action]);
@@ -67,6 +37,10 @@ function checkSequenceAction(action) {
 }
 
 function checkPatternSequence(sequence, context) {
+  if (!sequence || !sequence.map) {
+    throw new TypeError('"sequence" should be an array of sequences');
+  }
+
   return sequence.map(checkSequenceAction.bind(context));
 }
 
@@ -140,7 +114,7 @@ function loadPatterns(patternsGenerator) {
     throw new TypeError(typeErrorString);
   }
 
-  checkAllPatterns(patterns, this);
+  // checkAllPatterns(patterns, this) TODO check patterns on run
   registerPatterns.call(this, patterns);
 
   return this;
@@ -149,6 +123,10 @@ function loadPatterns(patternsGenerator) {
 function run(str) {
   this.runned = true;
 
+  // checkAllPatterns(patterns, this) TODO check patterns on run
+  if (this.options.authorization && !this.options.authorization.manual) {
+    this.authorize();
+  }
   console.log(this);
 
   return this;

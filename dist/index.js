@@ -8,16 +8,22 @@ var _soundcloud = require('./src/adapters/soundcloud');
 
 var _soundcloud2 = _interopRequireDefault(_soundcloud);
 
+var _credits = require('./credits');
+
+var _credits2 = _interopRequireDefault(_credits);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _core2.default.registerAdapter(_soundcloud2.default);
+
+console.log(_credits2.default);
 
 var bot = _core2.default.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom
   threads: 1,
   authorization: {
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
+    clientId: _credits2.default.sc.CLIENT_ID,
+    clientSecret: _credits2.default.sc.CLIENT_SECRET,
     redirectURI: 'http://localhost:8000/authorize'
   },
   limits: {
@@ -27,8 +33,8 @@ var bot = _core2.default.new({
 });
 
 bot.registerMethods(function (restSettings, instance) {
-  return function testmethods() {
-    return true;
+  return function authorize() {
+    return console.log('@@@@auth registered'), false;
   };
 }).registerMethods(function (restSettings, instance) {
   return {
@@ -44,20 +50,26 @@ bot.registerMethods(function (restSettings, instance) {
     }
   };
 }).loadPatterns(function (restSettings, instance) {
-  return [{
-    name: 'main',
-    sequence: [':explore', function (prevResolution, index, done) {
-      if (prevResolution === true) {
-        return ':listenToNewTracks';
-      } else {
-        return false;
-      }
-    }, function (prevResolution, index, done, sequencer) {
-      if (prevResolution === true) return sequencer.repeat();
-    }]
-  }, {
+  return [
+  // {
+  //   name: 'main',
+  //   sequence: [
+  //     ':explore',
+  //     (prevResolution, index, done) => {
+  //       if (prevResolution === true) {
+  //         return ':listenToNewTracks'
+  //       } else {
+  //         return false
+  //       }
+  //     },
+  //     (prevResolution, index, done, sequencer) => {
+  //       if (prevResolution === true) return sequencer.repeat()
+  //     }
+  //   ]
+  // },
+  {
     name: 'explore',
-    sequence: ['chooseCriterias', 'findTrackToStartExplore', 'collectExploreData']
+    sequence: ['listenNext']
   }];
 }).registerMethods(function (restSettings, instance) {
   return {

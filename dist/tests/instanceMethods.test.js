@@ -10,11 +10,15 @@ var _core2 = _interopRequireDefault(_core);
 
 var _instanceMethods = require('../src/rest/instanceMethods');
 
+var _adapterMethods = require('../src/rest/adapterMethods');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var existingAdapter = {
   name: 'soundcloud',
-  authorize: function authorize() {}
+  methods: {
+    authorize: function authorize() {}
+  }
 };
 
 _core2.default.registerAdapter(function (restSettings) {
@@ -30,7 +34,7 @@ describe('Testing instance methods:', function () {
     describe('it should pass', function () {
       it('when passing the name of an existing adapter', function () {
         var executable = function executable() {
-          (0, _instanceMethods.findAdapter)(instance.adapters, existingAdapter.name);
+          (0, _adapterMethods.findAdapter)(instance.adapters, existingAdapter.name);
         };
 
         _assert2.default.doesNotThrow(executable, Error);
@@ -40,7 +44,7 @@ describe('Testing instance methods:', function () {
     describe('it should throw an error', function () {
       it('when passing no name argument', function () {
         var executable = function executable() {
-          (0, _instanceMethods.findAdapter)(instance.adapters);
+          (0, _adapterMethods.findAdapter)(instance.adapters);
         };
 
         _assert2.default.throws(executable, /Pass an adapter name to the "findAdapter" method/);
@@ -48,7 +52,7 @@ describe('Testing instance methods:', function () {
 
       it('when passing not registered adapter name', function () {
         var executable = function executable() {
-          (0, _instanceMethods.findAdapter)(instance.adapters, 'custom');
+          (0, _adapterMethods.findAdapter)(instance.adapters, 'custom');
         };
 
         _assert2.default.throws(executable, /There is no adapter registered with the name/);
@@ -56,7 +60,7 @@ describe('Testing instance methods:', function () {
 
       it('when passing empty adapters list', function () {
         var executable = function executable() {
-          (0, _instanceMethods.findAdapter)(undefined, 'custom');
+          (0, _adapterMethods.findAdapter)(undefined, 'custom');
         };
 
         _assert2.default.throws(executable, /There are no registered adapters/);
@@ -72,7 +76,7 @@ describe('Testing instance methods:', function () {
     describe('it should pass', function () {
       it('when trying to use existing adapter', function () {
         var executable = function executable() {
-          _instanceMethods.useAdapter.call(instance, existingAdapter.name);
+          _adapterMethods.useAdapter.call(instance, existingAdapter.name);
         };
 
         _assert2.default.doesNotThrow(executable, Error);
@@ -86,7 +90,7 @@ describe('Testing instance methods:', function () {
     describe('it should throw an error', function () {
       it('when trying to use not registered adapter name', function () {
         var executable = function executable() {
-          _instanceMethods.useAdapter.call(instance, 'custom');
+          _adapterMethods.useAdapter.call(instance, 'custom');
         };
 
         _assert2.default.throws(executable, /There is no adapter registered with the name/);
@@ -94,7 +98,7 @@ describe('Testing instance methods:', function () {
 
       it('when passing no argument', function () {
         var executable = function executable() {
-          _instanceMethods.useAdapter.call(instance);
+          _adapterMethods.useAdapter.call(instance);
         };
 
         _assert2.default.throws(executable, /Pass an adapter name to the "useAdapter" method/);
@@ -230,6 +234,53 @@ describe('Testing instance methods:', function () {
         };
 
         _assert2.default.throws(executable, /There is no registered action/);
+      });
+    });
+  });
+
+  describe('private checkPatternSequence', function () {
+    var patterns = [{ name: 'test', sequence: ['someRegisteredMethod'] }];
+    var instance = _core2.default.new({
+      adapter: existingAdapter.name
+    });
+
+    instance.registerMethods(function (restSettings) {
+      return function someRegisteredMethod() {
+        return true;
+      };
+    }).loadPatterns(function (restSettings) {
+      return patterns;
+    });
+
+    describe('it should pass', function () {
+      it('when array of existing actions passed', function () {
+        var executable = function executable() {
+          (0, _instanceMethods.checkPatternSequence)(patterns[0].sequence, instance);
+        };
+
+        _assert2.default.doesNotThrow(executable, Error);
+      });
+    });
+
+    describe('it should throw an error', function () {
+      it('when there is no sequence passed', function () {
+        var executable = function executable() {
+          (0, _instanceMethods.checkPatternSequence)(undefined, instance);
+        };
+
+        _assert2.default.throws(executable, /"sequence" should be an array of sequences/);
+      });
+
+      it('when the sequence is not an array', function () {
+        var executable = function executable(subject) {
+          return function () {
+            (0, _instanceMethods.checkPatternSequence)(subject, instance);
+          };
+        };
+
+        [12, null, NaN, true, {}, 'test'].forEach(function () {
+          _assert2.default.throws(executable(), /"sequence" should be an array of sequences/);
+        });
       });
     });
   });
