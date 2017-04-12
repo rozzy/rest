@@ -1,4 +1,6 @@
-let express = require('express')
+import { URL } from 'url'
+import express from 'express'
+
 let server = null
 
 export function requestHandlerWrapper(requestHandler) {
@@ -10,18 +12,15 @@ export function requestHandlerWrapper(requestHandler) {
   }
 }
 
-export getCleanUrl(url) {
-  
+export function getPathname(url) {
+  return new URL(url).pathname
 }
 
-export function createServer(redirectURI, port = 8080) {
+export function createServer(redirectURI, requestHandler, port = 8080) {
   server = express()
+  server.get(getPathname(redirectURI), requestHandlerWrapper(requestHandler))
 
-  server.get(getCleanUrl(redirectURI), (req, res) => {
-    res.send('Admin Homepage');
-  })
-
-  server.listen(port)
+  return server.listen(port)
 }
 
 export default createServer

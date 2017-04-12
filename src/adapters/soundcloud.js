@@ -25,10 +25,16 @@ export default function soundcloudAdapter(restSettings) {
         let authLink = getSoundcloudUrl(credentials)
         let spawn = require('child_process').spawn
 
-        createServer(
-          instance.options.authorization.redirectURI
-        )
-        // spawn('open', [authLink])
+        createServer(instance.options.authorization.redirectURI, (req, res) => {
+          if (req.query.error) {
+            throw new Error(req.query.error_description)
+          }
+
+          // http://localhost:8080/callback.html?code=%code%
+          console.log(req.query)
+        })
+
+        spawn('open', [authLink])
       },
 
       deauthorize(credentials, settings, instance) {
