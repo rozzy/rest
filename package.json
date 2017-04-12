@@ -8,7 +8,7 @@
     "serve": "babel-node index.js -b babel-preset-es2015 $1",
     "test": "mocha --require babel-register tests/*.test.js tests/**/*.test.js --harmony --check-leaks",
     "prepublish": "npm run build",
-    "build": "babel . --presets babel-preset-es2015 --out-dir dist --ignore node_modules,.git,dist"
+    "build": "babel . --presets babel-preset-es2015 --out-dir dist --ignore node_modules,.git,dist,credits.js"
   },
   "repository": {
     "type": "git",
