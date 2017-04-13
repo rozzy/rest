@@ -260,12 +260,12 @@ describe('Testing instance methods:', () => {
       })
 
       it('when the sequence is not an array', () => {
-        let executable = (subject) => () => {
+        let executable = subject => () => {
           checkPatternSequence(subject, instance)
         }
 
-        [12, null, NaN, true, {}, 'test'].forEach(() => {
-          assert.throws(executable(), /"sequence" should be an array of sequences/)
+        [12, null, NaN, true, {}, 'test'].forEach(subject => {
+          assert.throws(executable(subject), /"sequence" should be an array of sequences/)
         })
       })
     })
