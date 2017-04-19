@@ -24,25 +24,29 @@ export function requestHandler(instance, req, res) {
       throw new Error(error)
     } else {
       // Client is now authorized and able to make API calls
-      instance.SC = SC
       if (!instance.data) {
         instance.data = {}
       }
+
       instance.data.accessToken = accessToken
+      instance.SC = SC
+
       writeToken('soundcloud', accessToken)
     }
   })
 }
 
-export function authorizeWithToken(credentials, settings, instance, existingToken) {
+export function authorizeWithToken(credentials, settings, instance, accessToken) {
   SC.init({
+    accessToken,
     id: credentials.clientId,
     secret: credentials.clientSecret,
-    uri: credentials.redirectURI,
-    accessToken: existingToken
+    uri: credentials.redirectURI
   })
 
-
+  // TODO
+  // check here if user can make calls with this accessToken
+  // previously there was a SPIKE: JSON parsing errors couln't be caught
 
   return existingToken
 }
