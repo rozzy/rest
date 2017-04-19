@@ -22,7 +22,8 @@ export function requestHandler(req, res) {
       throw err;
     } else {
       // Client is now authorized and able to make API calls
-      console.log('access token:', accessToken);
+      instance.data.accessToken = accessToken;
+
       SC.get('/tracks/13158665', function(err2, track) {
         console.log(err2)
         console.log('track retrieved:', track);
