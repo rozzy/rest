@@ -4,8 +4,8 @@
   "description": "middleware for writing bots",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon -x npm run serve $1",
-    "serve": "babel-node index.js -b babel-preset-es2015 $1",
+    "start": "nodemon -x npm run serve",
+    "serve": "babel-node tests/examples/soundcloud/index.js -b babel-preset-es2015",
     "test": "mocha --require babel-register tests/*.test.js tests/**/*.test.js --harmony --check-leaks",
     "prepublish": "npm run build",
     "build": "babel . --presets babel-preset-es2015 --out-dir dist --ignore node_modules,.git,dist,credits.js"
