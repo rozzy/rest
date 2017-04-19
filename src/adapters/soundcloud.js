@@ -34,7 +34,7 @@ export function requestHandler(instance, req, res) {
   })
 }
 
-export function authorizeWithToken(credentials, existingToken) {
+export function authorizeWithToken(credentials, settings, instance, existingToken) {
   SC.init({
     id: credentials.clientId,
     secret: credentials.clientSecret,
@@ -42,7 +42,21 @@ export function authorizeWithToken(credentials, existingToken) {
     accessToken: existingToken
   })
 
+
+
   return existingToken
+}
+
+export function authorizeWithoutToken(credentials, settings, instance) {
+  let authLink = getSoundcloudUrl(credentials)
+  let spawn = require('child_process').spawn
+
+  createServer(
+    instance.options.authorization.redirectURI,
+    requestHandler.bind(requestHandler, instance)
+  )
+
+  spawn('open', [authLink])
 }
 
 export default function soundcloudAdapter(restSettings) {
@@ -59,18 +73,10 @@ export default function soundcloudAdapter(restSettings) {
         if (tokenExists('soundcloud')) {
           let existingToken = getToken('soundcloud')
 
-          return authorizeWithToken(credentials, existingToken)
+          return authorizeWithToken(credentials, settings, instance, existingToken)
         }
 
-        let authLink = getSoundcloudUrl(credentials)
-        let spawn = require('child_process').spawn
-
-        createServer(
-          instance.options.authorization.redirectURI,
-          requestHandler.bind(requestHandler, instance)
-        )
-
-        spawn('open', [authLink])
+        authorizeWithoutToken(credentials, settings, instance)
       },
 
       deauthorize(credentials, settings, instance) {
