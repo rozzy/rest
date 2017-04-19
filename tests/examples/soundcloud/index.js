@@ -69,4 +69,5 @@ bot
       }
     }
   })
-  .run()
+  // .run('explore')
+  .run(['collectStatistics', 'findNewUsers'])

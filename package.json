@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "express": "^4.15.2",
-    "node-soundcloud": "0.0.6"
+    "node-soundcloud": "0.0.6",
+    "node-yaml": "^3.0.3"
   }
 }
