@@ -1,6 +1,9 @@
 import fs from 'fs'
 import yaml from 'node-yaml'
 
+// there is a .gitignored file in the folder
+// which creates automatically (if not exists)
+// and stores the auth tokens to not authorize user several times in a row
 const AUTH_FILE = 'authtokens'
 
 export function createAuthFile(callback, err, data) {

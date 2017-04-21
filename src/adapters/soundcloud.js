@@ -48,7 +48,7 @@ export function authorizeWithToken(credentials, settings, instance, accessToken)
   // check here if user can make calls with this accessToken
   // previously there was a SPIKE: JSON parsing errors couln't be caught
 
-  return existingToken
+  return instance
 }
 
 export function authorizeWithoutToken(credentials, settings, instance) {

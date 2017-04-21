@@ -60,6 +60,18 @@ export function registerPatterns(patterns) {
   }
 }
 
+export function isMethodRegistered(wantedMethod) {
+  if (!this._methods) {
+    return false
+  }
+
+  let foundMethod = this._methods.filter(method => {
+    return method === wantedMethod
+  })
+
+  return foundMethod && foundMethod.length > 0
+}
+
 export function registerMethods(methodsGenerator) {
   if (!isFunction(methodsGenerator)) {
     throw new TypeError('Pass the function which returns an object with methods you want to register')
@@ -106,15 +118,67 @@ export function loadPatterns(patternsGenerator) {
   return this
 }
 
-export function run(str) {
-  this.runned = true
+export function commandExists() {
 
+}
+
+export function runSequence(sequence) {
+  console.log(sequence)
+}
+
+export function findSequence(instance, sequenceName) {
+  let foundSequence = instance._patterns.filter(pattern => {
+    return pattern.name === sequenceName
+  })
+
+  return foundSequence && foundSequence[0]
+}
+
+export function isSequence(instance, command) {
+  if (typeof command !== 'string') {
+    throw new TypeError('Command should be a string')
+  }
+
+  if (command[0] === ':') {
+    command = command.slice(1)
+  }
+
+  let sequenceFound = findSequence(instance, command)
+
+  return !!sequenceFound
+}
+
+export function runCommand(command) {
+  if (typeof command === 'string' && isSequence(this, command)) {
+    return runSequence.call(this, command)
+  }
+
+  if (commandExists(command)) {
+
+  }
+
+  throw new Error('Command doesn\'t exist', command)
+}
+
+export function run(commands) {
+  if (!this.runned) {
+    this.runned = []
+  }
+
+  this.runned.push(+new Date)
 
   // checkAllPatterns(patterns, this) TODO check patterns on run
   if (this.options.authorization && !this.options.authorization.manual) {
     this.authorize()
   }
-  // console.log(this)
+
+  if (typeof commands === 'string') {
+    runCommand.call(this, commands)
+  }
+
+  if (isArray(commands)) {
+    commands.forEach(runCommand.bind(this))
+  }
 
   return this
 }

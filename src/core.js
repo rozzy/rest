@@ -1,4 +1,4 @@
-import { registerMethods, loadPatterns, run } from './rest/instanceMethods'
+import { isMethodRegistered, registerMethods, loadPatterns, run } from './rest/instanceMethods'
 import { useAdapter, adapterIsValid } from './rest/adapterMethods'
 import authModule from './rest/auth'
 
@@ -52,7 +52,7 @@ export default (function () {
       adapters: rest.adapters,
       _methods: {},
 
-      run, useAdapter, loadPatterns, registerMethods
+      run, useAdapter, loadPatterns, registerMethods, isMethodRegistered
     }
 
     // extending with authorization module

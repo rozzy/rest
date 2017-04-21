@@ -69,5 +69,5 @@ bot
       }
     }
   })
-  // .run('explore')
-  .run(['collectStatistics', 'findNewUsers'])
+  .run('explore')
+  // .run(['collectStatistics', 'findNewUsers'])
