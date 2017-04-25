@@ -53,7 +53,7 @@ export function authorizeWithToken(credentials, settings, instance, accessToken)
 
 export function authorizeWithoutToken(credentials, settings, instance) {
   let authLink = getSoundcloudUrl(credentials)
-  let spawn = require('child_process').spawn
+  let { spawn } = require('child_process')
 
   createServer(
     instance.options.authorization.redirectURI,

@@ -57,7 +57,7 @@ bot
       // },
       {
         name: 'explore',
-        sequence: ['listenNext']
+        sequence: [() => true, 'chooseCriterias']
       }
     ]
   })
@@ -69,5 +69,5 @@ bot
       }
     }
   })
-  .run('explore')
-  // .run(['collectStatistics', 'findNewUsers'])
+  // .run('explore')
+  .run(['explore', 'findNewUsers'])

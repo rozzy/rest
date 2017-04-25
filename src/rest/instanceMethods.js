@@ -1,4 +1,5 @@
 import { isFunction, isArray, isObject } from 'lodash/core'
+import { executeSequence, commandExists } from './sequencer'
 
 export function isActionRegistered(action) {
   return !!this && !!this._methods && typeof action === 'string' && (
@@ -118,15 +119,21 @@ export function loadPatterns(patternsGenerator) {
   return this
 }
 
-export function commandExists() {
+export function runSequence(instance, sequenceName) {
+  if (!isSequence(instance, sequenceName)) {
+    throw new Error('Not a sequence', sequenceName)
+  }
 
-}
+  let { sequence } = findSequence(instance, sequenceName)
 
-export function runSequence(sequence) {
-  console.log(sequence)
+  executeSequence(instance, sequence)
 }
 
 export function findSequence(instance, sequenceName) {
+  if (typeof sequenceName !== 'string') {
+    throw new TypeError('"sequenceName" should be a string')
+  }
+
   let foundSequence = instance._patterns.filter(pattern => {
     return pattern.name === sequenceName
   })
@@ -135,29 +142,32 @@ export function findSequence(instance, sequenceName) {
 }
 
 export function isSequence(instance, command) {
-  if (typeof command !== 'string') {
-    throw new TypeError('Command should be a string')
+  if (typeof command !== 'string' && !isArray(command) && !isFunction(command)) {
+    throw new TypeError('Command should be a string/array/function: ' + command)
   }
 
-  if (command[0] === ':') {
-    command = command.slice(1)
+  if (typeof command === 'string') {
+    if (command[0] === ':') {
+      command = command.slice(1)
+    }
+
+    let sequenceFound = findSequence(instance, command)
+
+    return !!sequenceFound
   }
 
-  let sequenceFound = findSequence(instance, command)
-
-  return !!sequenceFound
-}
-
-export function runCommand(command) {
-  if (typeof command === 'string' && isSequence(this, command)) {
-    return runSequence.call(this, command)
+  if (isArray(command)) {
+    command.forEach(currentCommand => {
+      if (
+        typeof currentCommand === 'string' && (
+          !commandExists(instance, currentCommand) ||
+          !isSequence(instance, currentCommand)
+        )
+      ) {
+        throw new Error('Method or sequence isn\'t registered: ' + currentCommand)
+      }
+    })
   }
-
-  if (commandExists(command)) {
-
-  }
-
-  throw new Error('Command doesn\'t exist', command)
 }
 
 export function run(commands) {
@@ -165,20 +175,17 @@ export function run(commands) {
     this.runned = []
   }
 
-  this.runned.push(+new Date)
+  this.runned.push({
+    instance: this,
+    at: +new Date
+  })
 
   // checkAllPatterns(patterns, this) TODO check patterns on run
   if (this.options.authorization && !this.options.authorization.manual) {
     this.authorize()
   }
 
-  if (typeof commands === 'string') {
-    runCommand.call(this, commands)
-  }
-
-  if (isArray(commands)) {
-    commands.forEach(runCommand.bind(this))
-  }
+  runSequence(this, commands)
 
   return this
 }
