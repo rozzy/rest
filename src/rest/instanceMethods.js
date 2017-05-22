@@ -1,77 +1,5 @@
 import { isFunction, isArray, isObject } from 'lodash/core'
-import { executeSequence, commandExists } from './sequencer'
-
-export function isActionRegistered(action) {
-  return !!this && !!this._methods && typeof action === 'string' && (
-    !!this._methods[action] &&
-    isFunction(this._methods[action])
-  )
-}
-
-export function checkSequenceAction(action) {
-  let isString = typeof action === 'string'
-  let isFunc = isFunction(action)
-
-  if (!isFunc && !isString) {
-    throw new TypeError('Sequence could only contain strings or functions')
-  }
-
-  if (!isFunc && !isActionRegistered.call(this, action)) {
-    throw new Error(`There is no registered action "${action}"`)
-  }
-
-  return true
-}
-
-export function checkPatternSequence(sequence, context) {
-  if (!sequence || !sequence.map) {
-    throw new TypeError('"sequence" should be an array of sequences')
-  }
-
-  return sequence.map(checkSequenceAction.bind(context))
-}
-
-export function checkPattern(pattern) {
-  if (!isObject(pattern)) {
-    throw new TypeError('Pattern should be a plain object')
-  }
-
-  if (!pattern.hasOwnProperty('sequence')) {
-    throw new TypeError('Pattern should contain the "sequence" property')
-  }
-
-  if (!isArray(pattern.sequence)) {
-    throw new TypeError('"Sequence" property should be an array of actions (see docs: sequence)')
-  }
-
-  checkPatternSequence(pattern.sequence, this)
-
-  return true
-}
-
-export function checkAllPatterns(patterns, context) {
-  return patterns.forEach(checkPattern.bind(context))
-}
-
-export function registerPatterns(patterns) {
-  if (!this._patterns) {
-    this._patterns = patterns
-  } else if (isArray(this._patterns)) {
-    this._patterns = [...this._patterns, ...patterns]
-  }
-}
-
-export function isMethodRegistered(wantedMethod) {
-  if (!this._methods) {
-    return false
-  }
-
-  let foundMethod = this._methods.filter(method => {
-    return method === wantedMethod
-  })
-
-  return foundMethod && foundMethod.length > 0
-}
+import { executePattern, commandExists } from './sequencer'
 
 export function registerMethods(methodsGenerator) {
   if (!isFunction(methodsGenerator)) {
@@ -102,6 +30,16 @@ export function registerMethods(methodsGenerator) {
   return this
 }
 
+export function registerPatterns(patterns) {
+  if (!this._patterns) {
+    this._patterns = patterns
+  } else if (isArray(this._patterns)) {
+    this._patterns = [...this._patterns, ...patterns]
+  }
+
+  return this
+}
+
 export function loadPatterns(patternsGenerator) {
   let typeErrorString = 'Pass the function which returns a set of patterns to the "loadPatterns" method'
   if (!isFunction(patternsGenerator)) {
@@ -113,79 +51,56 @@ export function loadPatterns(patternsGenerator) {
     throw new TypeError(typeErrorString)
   }
 
-  // checkAllPatterns(patterns, this) TODO check patterns on run
   registerPatterns.call(this, patterns)
 
   return this
 }
 
-export function runSequence(instance, sequenceName) {
-  if (!isSequence(instance, sequenceName)) {
-    throw new Error('Not a sequence', sequenceName)
+export function initializePattern(instance, givenPattern) {
+  let pattern = findPattern(instance, givenPattern)
+
+  if (!pattern) {
+    throw new Error('Not a pattern: ' + givenPattern)
   }
 
-  let { sequence } = findSequence(instance, sequenceName)
-
-  executeSequence(instance, sequence)
+  return executePattern(instance, pattern)
 }
 
-export function findSequence(instance, sequenceName) {
-  if (typeof sequenceName !== 'string') {
-    throw new TypeError('"sequenceName" should be a string')
+export function findPattern(instance, givenPattern) {
+  if (isArray(givenPattern)) {
+    // this is an anonymous pattern
+    return { sequence: givenPattern }
   }
 
-  let foundSequence = instance._patterns.filter(pattern => {
-    return pattern.name === sequenceName
+  if (typeof givenPattern !== 'string') {
+    throw new TypeError('"pattern" should be a string/array')
+  }
+
+  if (givenPattern[0] === ':') {
+    givenPattern = givenPattern.slice(1)
+  }
+
+  let foundPattern = instance._patterns.filter(currentPattern => {
+    return currentPattern.name === givenPattern
   })
 
-  return foundSequence && foundSequence[0]
+  return foundPattern && foundPattern[0]
 }
 
-export function isSequence(instance, command) {
-  if (typeof command !== 'string' && !isArray(command) && !isFunction(command)) {
-    throw new TypeError('Command should be a string/array/function: ' + command)
-  }
-
-  if (typeof command === 'string') {
-    if (command[0] === ':') {
-      command = command.slice(1)
-    }
-
-    let sequenceFound = findSequence(instance, command)
-
-    return !!sequenceFound
-  }
-
-  if (isArray(command)) {
-    command.forEach(currentCommand => {
-      if (
-        typeof currentCommand === 'string' && (
-          !commandExists(instance, currentCommand) ||
-          !isSequence(instance, currentCommand)
-        )
-      ) {
-        throw new Error('Method or sequence isn\'t registered: ' + currentCommand)
-      }
-    })
-  }
-}
-
-export function run(commands) {
+export function run(pattern) {
   if (!this.runned) {
     this.runned = []
   }
 
   this.runned.push({
     instance: this,
-    at: +new Date
+    at: +new Date,
+    with: pattern
   })
 
-  // checkAllPatterns(patterns, this) TODO check patterns on run
   if (this.options.authorization && !this.options.authorization.manual) {
     this.authorize()
   }
 
-  runSequence(this, commands)
-
-  return this
+  return initializePattern(this, pattern), this
 }

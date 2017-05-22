@@ -26,14 +26,15 @@ bot
   .registerMethods((restSettings, instance) => {
     return {
       listenNext(prevResolution, index, done) {
-        if (instance.data.loaded <= instance.data.available) {
-          return ['loadNext', 'listenNext']
-        } else {
-          let track = foundNextTrack(instance)
-          listenToTheTrack(track)
-
-          return true
-        }
+        console.log('LISTEN NEXT METHOD EXECUTED >>>>')
+        // if (instance.data.loaded <= instance.data.available) {
+        //   return ['loadNext', 'listenNext']
+        // } else {
+        //   let track = foundNextTrack(instance)
+        //   listenToTheTrack(track)
+        //
+        //   return true
+        // }
       }
     }
   })
@@ -58,6 +59,16 @@ bot
       {
         name: 'explore',
         sequence: [() => true, 'chooseCriterias']
+      },
+      {
+        name: 'main',
+        sequence: [':run2', () => { return console.log('executed'), true }],
+        onFinish: seq => console.log('finished', seq),
+        onError: err => console.log('err')
+      },
+      {
+        name: 'run2',
+        sequence: [() => { return console.log('returns false'), false }, () => console.log('will not be executed')]
       }
     ]
   })
@@ -69,5 +80,5 @@ bot
       }
     }
   })
-  // .run('explore')
-  .run(['explore', 'findNewUsers'])
+  // .run(':main')
+  .run(['listenNext', 'listenNext', ':main', ':explore'])
