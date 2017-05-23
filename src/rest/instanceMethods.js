@@ -1,6 +1,8 @@
 import { isFunction, isArray, isObject } from 'lodash/core'
-import { executePattern, commandExists } from './sequencer'
+import { findPattern, executePattern } from './sequencer'
 
+// registers given methods in the instance object
+// then these methods could be executed in patterns
 export function registerMethods(methodsGenerator) {
   if (!isFunction(methodsGenerator)) {
     throw new TypeError('Pass the function which returns an object with methods you want to register')
@@ -30,6 +32,8 @@ export function registerMethods(methodsGenerator) {
   return this
 }
 
+// registers patterns in the instance object
+// then these patterns could be executed with .run method or from other patterns
 export function registerPatterns(patterns) {
   if (!this._patterns) {
     this._patterns = patterns
@@ -40,6 +44,7 @@ export function registerPatterns(patterns) {
   return this
 }
 
+// checks given patterns and pass them to the .registerPatterns method
 export function loadPatterns(patternsGenerator) {
   let typeErrorString = 'Pass the function which returns a set of patterns to the "loadPatterns" method'
   if (!isFunction(patternsGenerator)) {
@@ -56,37 +61,21 @@ export function loadPatterns(patternsGenerator) {
   return this
 }
 
+// checks if the pattern could be executed
+// then passes it to the sequencer
 export function initializePattern(instance, givenPattern) {
   let pattern = findPattern(instance, givenPattern)
-
-  if (!pattern) {
-    throw new Error('Not a pattern: ' + givenPattern)
-  }
 
   return executePattern(instance, pattern)
 }
 
-export function findPattern(instance, givenPattern) {
-  if (isArray(givenPattern)) {
-    // this is an anonymous pattern
-    return { sequence: givenPattern }
-  }
-
-  if (typeof givenPattern !== 'string') {
-    throw new TypeError('"pattern" should be a string/array')
-  }
-
-  if (givenPattern[0] === ':') {
-    givenPattern = givenPattern.slice(1)
-  }
-
-  let foundPattern = instance._patterns.filter(currentPattern => {
-    return currentPattern.name === givenPattern
-  })
-
-  return foundPattern && foundPattern[0]
-}
-
+// runs given pattern (array/string)
+// accepts string - name of the pattern
+// if string, it will look for a registered pattern with that name and try to execute it
+//
+// accepts array – in this case the pattern will be anonymous (anonymous pattern)
+// anonymous pattern is a regular pattern, but it doesn't have a name and callbacks
+// so it can not be reffered from other sequences
 export function run(pattern) {
   if (!this.runned) {
     this.runned = []

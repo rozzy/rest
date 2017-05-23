@@ -25,16 +25,9 @@ bot
   })
   .registerMethods((restSettings, instance) => {
     return {
-      listenNext(prevResolution, index, done) {
-        console.log('LISTEN NEXT METHOD EXECUTED >>>>')
-        // if (instance.data.loaded <= instance.data.available) {
-        //   return ['loadNext', 'listenNext']
-        // } else {
-        //   let track = foundNextTrack(instance)
-        //   listenToTheTrack(track)
-        //
-        //   return true
-        // }
+      listenNext(sequencer, done, index) {
+        console.log('1')
+        return true
       }
     }
   })
@@ -54,6 +47,14 @@ bot
       //     (prevResolution, index, done, sequencer) => {
       //       if (prevResolution === true) return sequencer.repeat()
       //     }
+      // if (instance.data.loaded <= instance.data.available) {
+      //   return ['loadNext', 'listenNext']
+      // } else {
+      //   let track = foundNextTrack(instance)
+      //   listenToTheTrack(track)
+      //
+      //   return true
+      // }
       //   ]
       // },
       {
@@ -62,13 +63,13 @@ bot
       },
       {
         name: 'main',
-        sequence: [':run2', () => { return console.log('executed'), true }],
+        sequence: [':run2', () => { return console.log('5'), true }, ':run2'],
         onFinish: seq => console.log('finished', seq),
         onError: err => console.log('err')
       },
       {
         name: 'run2',
-        sequence: [() => { return console.log('returns false'), false }, () => console.log('will not be executed')]
+        sequence: [() => { return console.log('3/6'), true }, () => { return console.log('4/7'), true }]
       }
     ]
   })
@@ -81,4 +82,4 @@ bot
     }
   })
   // .run(':main')
-  .run(['listenNext', 'listenNext', ':main', ':explore'])
+  .run(['listenNext', () => { return console.log('2'), true }, ':main'])
