@@ -33,22 +33,39 @@ export function next(instance) {
     }
   }
 
-  // console.log('next 0--->', this.sequence);
-  // console.log('next 1--->', index);
-  let step = parseCurrentStep(this.sequence[index], instance, this.sequence, index)
-  let executionResults = step.call(instance, this, proceed, index)
+  let checkResultTypeAndProceed = (actionResult) => {
+    if (actionResult === true) {
+      return proceed()
+    }
 
-  if (executionResults === true) {
-    return proceed()
+    let result = parseAction(actionResult)
+
+    if (result === true) {
+      proceed()
+    }
   }
 
-  // if (executionResults === )
+  // console.log('next 0--->', this.sequence);
+  // console.log('next 1--->', index);
+  let step = parseAction(this.sequence[index], instance, this.sequence, index)
+  let executionResult = step.call(instance, this, proceed, index)
+
+  if (isObject(executionResult) && isFunction(executionResult.then)) {
+    executionResult
+      .then(checkResultTypeAndProceed, checkResultTypeAndProceed)
+  } else if (!!executionResult) {
+    checkResultTypeAndProceed(executionResult)
+  }
+}
+
+export function parseStepResult(result, proceed) {
+  return parseAction
 }
 
 export function executeMethod(executable) {
-  let executionResults = executable({ index: ++this.index, done: () => {} })
+  let executionResult = executable({ index: ++this.index, done: () => {} })
 
-  // console.log('===> result:', executionResults)
+  // console.log('===> result:', executionResult)
 }
 
 export function commandExists(instance, commandName) {
@@ -83,13 +100,6 @@ export function getExecutableAction(action, instance) {
   return instance._methods[action]
 }
 
-export function executeAction(action, instance, sequencer) {
-  let executableAction = getExecutableAction(action, instance)
-
-  sequencer.executeMethod(execution => {
-    return executableAction.call(instance, sequencer, execution.done, execution.index)
-  })
-}
 
 // sequencer = {}
 //
@@ -143,9 +153,9 @@ export function executeAction(action, instance, sequencer) {
 //   }
 // }
 
-export function parseCurrentStep(action, instance, sequence, index) {
-  // console.log('parseCurrentStep ------>', action)
-  if (isSequence(action)) {
+export function parseAction(action, instance, sequence, index) {
+  // console.log('parseAction ------>', action)
+  if (isSequence(action) || isArray(action)) {
     return expandSequence(action, instance, sequence, index)
   }
 
@@ -161,11 +171,18 @@ export function parseCurrentStep(action, instance, sequence, index) {
 }
 
 export function expandSequence(action, instance, seq, index) {
-  let { sequence } = findPattern(instance, action)
+  let sequence
+
+  if (isArray(action)) {
+    sequence = action
+  } else {
+    sequence = findPattern(instance, action).sequence
+  }
+
   injectIntoSequence(index, sequence, seq)
 
   let expandedResult = seq[index]
-  return parseCurrentStep(expandedResult, instance, seq, index)
+  return parseAction(expandedResult, instance, seq, index)
 }
 
 export function injectIntoSequence(index, itemsToInject, sequence) {

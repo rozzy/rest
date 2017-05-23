@@ -3,77 +3,20 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.isActionRegistered = isActionRegistered;
-exports.checkSequenceAction = checkSequenceAction;
-exports.checkPatternSequence = checkPatternSequence;
-exports.checkPattern = checkPattern;
-exports.checkAllPatterns = checkAllPatterns;
-exports.registerPatterns = registerPatterns;
 exports.registerMethods = registerMethods;
+exports.registerPatterns = registerPatterns;
 exports.loadPatterns = loadPatterns;
+exports.initializePattern = initializePattern;
 exports.run = run;
 
 var _core = require('lodash/core');
 
+var _sequencer = require('./sequencer');
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-function isActionRegistered(action) {
-  return !!this && !!this._methods && typeof action === 'string' && !!this._methods[action] && (0, _core.isFunction)(this._methods[action]);
-}
-
-function checkSequenceAction(action) {
-  var isString = typeof action === 'string';
-  var isFunc = (0, _core.isFunction)(action);
-
-  if (!isFunc && !isString) {
-    throw new TypeError('Sequence could only contain strings or functions');
-  }
-
-  if (!isFunc && !isActionRegistered.call(this, action)) {
-    throw new Error('There is no registered action "' + action + '"');
-  }
-
-  return true;
-}
-
-function checkPatternSequence(sequence, context) {
-  if (!sequence || !sequence.map) {
-    throw new TypeError('"sequence" should be an array of sequences');
-  }
-
-  return sequence.map(checkSequenceAction.bind(context));
-}
-
-function checkPattern(pattern) {
-  if (!(0, _core.isObject)(pattern)) {
-    throw new TypeError('Pattern should be a plain object');
-  }
-
-  if (!pattern.hasOwnProperty('sequence')) {
-    throw new TypeError('Pattern should contain the "sequence" property');
-  }
-
-  if (!(0, _core.isArray)(pattern.sequence)) {
-    throw new TypeError('"Sequence" property should be an array of actions (see docs: sequence)');
-  }
-
-  checkPatternSequence(pattern.sequence, this);
-
-  return true;
-}
-
-function checkAllPatterns(patterns, context) {
-  return patterns.forEach(checkPattern.bind(context));
-}
-
-function registerPatterns(patterns) {
-  if (!this._patterns) {
-    this._patterns = patterns;
-  } else if ((0, _core.isArray)(this._patterns)) {
-    this._patterns = [].concat(_toConsumableArray(this._patterns), _toConsumableArray(patterns));
-  }
-}
-
+// registers given methods in the instance object
+// then these methods could be executed in patterns
 function registerMethods(methodsGenerator) {
   if (!(0, _core.isFunction)(methodsGenerator)) {
     throw new TypeError('Pass the function which returns an object with methods you want to register');
@@ -103,6 +46,19 @@ function registerMethods(methodsGenerator) {
   return this;
 }
 
+// registers patterns in the instance object
+// then these patterns could be executed with .run method or from other patterns
+function registerPatterns(patterns) {
+  if (!this._patterns) {
+    this._patterns = patterns;
+  } else if ((0, _core.isArray)(this._patterns)) {
+    this._patterns = [].concat(_toConsumableArray(this._patterns), _toConsumableArray(patterns));
+  }
+
+  return this;
+}
+
+// checks given patterns and pass them to the .registerPatterns method
 function loadPatterns(patternsGenerator) {
   var typeErrorString = 'Pass the function which returns a set of patterns to the "loadPatterns" method';
   if (!(0, _core.isFunction)(patternsGenerator)) {
@@ -114,20 +70,40 @@ function loadPatterns(patternsGenerator) {
     throw new TypeError(typeErrorString);
   }
 
-  // checkAllPatterns(patterns, this) TODO check patterns on run
   registerPatterns.call(this, patterns);
 
   return this;
 }
 
-function run(str) {
-  this.runned = true;
+// checks if the pattern could be executed
+// then passes it to the sequencer
+function initializePattern(instance, givenPattern) {
+  var pattern = (0, _sequencer.findPattern)(instance, givenPattern);
 
-  // checkAllPatterns(patterns, this) TODO check patterns on run
+  return (0, _sequencer.executePattern)(instance, pattern);
+}
+
+// runs given pattern (array/string)
+// accepts string - name of the pattern
+// if string, it will look for a registered pattern with that name and try to execute it
+//
+// accepts array – in this case the pattern will be anonymous (anonymous pattern)
+// anonymous pattern is a regular pattern, but it doesn't have a name and callbacks
+// so it can not be reffered from other sequences
+function run(pattern) {
+  if (!this.runned) {
+    this.runned = [];
+  }
+
+  this.runned.push({
+    instance: this,
+    at: +new Date(),
+    with: pattern
+  });
+
   if (this.options.authorization && !this.options.authorization.manual) {
     this.authorize();
   }
-  // console.log(this)
 
-  return this;
+  return initializePattern(this, pattern), this;
 }

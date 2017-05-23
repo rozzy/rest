@@ -67,7 +67,7 @@ exports.default = function () {
       adapters: rest.adapters,
       _methods: {},
 
-      run: _instanceMethods.run, useAdapter: _adapterMethods.useAdapter, loadPatterns: _instanceMethods.loadPatterns, registerMethods: _instanceMethods.registerMethods
+      run: _instanceMethods.run, useAdapter: _adapterMethods.useAdapter, loadPatterns: _instanceMethods.loadPatterns, registerMethods: _instanceMethods.registerMethods, isMethodRegistered: _instanceMethods.isMethodRegistered
     };
 
     // extending with authorization module

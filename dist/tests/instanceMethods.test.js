@@ -278,8 +278,8 @@ describe('Testing instance methods:', function () {
           };
         };
 
-        [12, null, NaN, true, {}, 'test'].forEach(function () {
-          _assert2.default.throws(executable(), /"sequence" should be an array of sequences/);
+        [12, null, NaN, true, {}, 'test'].forEach(function (subject) {
+          _assert2.default.throws(executable(subject), /"sequence" should be an array of sequences/);
         });
       });
     });

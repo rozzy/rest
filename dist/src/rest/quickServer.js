@@ -4,8 +4,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.requestHandlerWrapper = requestHandlerWrapper;
+exports.getPathname = getPathname;
 exports.createServer = createServer;
-var http = require('http');
+
+var _url = require('url');
+
+var _express = require('express');
+
+var _express2 = _interopRequireDefault(_express);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var server = null;
 
 function requestHandlerWrapper(requestHandler) {
@@ -17,22 +26,17 @@ function requestHandlerWrapper(requestHandler) {
   };
 }
 
-function createServer(requestHandler) {
-  var port = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 8080;
+function getPathname(url) {
+  return new _url.URL(url).pathname;
+}
 
-  console.log('server started');
+function createServer(redirectURI, requestHandler) {
+  var port = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 8080;
 
-  server = http.createServer(requestHandlerWrapper(requestHandler));
+  server = (0, _express2.default)();
+  server.get(getPathname(redirectURI), requestHandlerWrapper(requestHandler));
 
-  server.listen(port, function (err) {
-    if (err) {
-      throw new Error(error);
-    }
-  });
-
-  return function () {
-    server.close();
-  };
+  return server.listen(port);
 }
 
 exports.default = createServer;

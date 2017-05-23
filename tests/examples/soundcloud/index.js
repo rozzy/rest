@@ -2,6 +2,17 @@ import rest from '../../../index'
 
 import credits from '../../../credits'
 
+function promiseFunc(seq, done) {
+  let promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log('setTimeout in a promise')
+      resolve(true)
+    }, 2000)
+  })
+
+  return promise
+}
+
 var bot = rest.new({
   adapter: 'soundcloud', // twitter, instagram, youtube, custom
   threads: 1,
@@ -58,10 +69,6 @@ bot
       //   ]
       // },
       {
-        name: 'explore',
-        sequence: [() => true, 'chooseCriterias']
-      },
-      {
         name: 'main',
         sequence: [':run2', () => { return console.log('5'), true }, ':run2'],
         onFinish: seq => console.log('finished', seq),
@@ -69,17 +76,12 @@ bot
       },
       {
         name: 'run2',
-        sequence: [() => { return console.log('3/6'), true }, () => { return console.log('4/7'), true }]
+        sequence: [
+          () => { return console.log('message before Promise'), true },
+          promiseFunc,
+          () => { return console.log('message after Promise'), true }]
       }
     ]
   })
-  .registerMethods((restSettings, instance) => {
-    return {
-      chooseCriterias(prevResolution, index, done) {
-        console.log('chooseCriterias ...', prevResolution, index)
-        setTimeout(done, 1000)
-      }
-    }
-  })
-  // .run(':main')
-  .run(['listenNext', () => { return console.log('2'), true }, ':main'])
+  .run('run2')
+  // .run(['listenNext', () => { return console.log('2'), true }, ':main'])
