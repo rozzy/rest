@@ -1,13 +1,15 @@
+import { isObject, merge } from 'lodash'
+
 import { isMethodRegistered, registerMethods, loadPatterns, run } from './rest/instanceMethods'
 import { useAdapter, adapterIsValid } from './rest/adapterMethods'
 import authModule from './rest/auth'
 
 export default (function () {
   let defaultSettings = { // default rest settings
-    adapter: 'custom', // @string: set of rules for certain API
+    adapter: null, // @string: set of rules for certain API
     threads: 1, // @integer: maximum number of threads app will have
     authorization: { // @object: authorization data for adapter API
-      manual: false // @bool: tries to authorize on start, when true
+      manual: true // @bool: doesn't try to authorize on start, when true
     },
     limits: null, // @object: set of rules to avoid bans and blocks
   }
@@ -48,6 +50,14 @@ export default (function () {
     returns the instance
   */
   rest.new = instanceSettings => {
+    if (!!instanceSettings && !isObject(instanceSettings)) {
+      throw new TypeError('instanceSettings should be an object')
+    }
+
+    if (!instanceSettings) {
+      instanceSettings = {}
+    }
+
     let instance = {
       adapters: rest.adapters,
       _methods: {},
@@ -56,10 +66,16 @@ export default (function () {
     }
 
     // extending with authorization module
-    instance = Object.assign({}, instance, authModule)
-    instance.options = Object.assign({}, defaultSettings, instanceSettings)
+    instance = merge({}, instance, authModule)
+    instance.options = merge({}, defaultSettings, instanceSettings)
 
-    instance.useAdapter(instanceSettings.adapter)
+    if (instanceSettings.adapter) {
+      instance.useAdapter(instanceSettings.adapter)
+    } else {
+      // in case that user wants to use just a sequencer
+      // without attaching any adapters
+      instance._adapter = { methods: { } }
+    }
 
     return instance
   }

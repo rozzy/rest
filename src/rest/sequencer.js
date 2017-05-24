@@ -1,8 +1,63 @@
 import { isFunction, isArray, isObject } from 'lodash/core'
 
+// TODO
+// how to improve sequencer:
+
+// to allow a user repeat a particular sequence, execute onStart/onFinish/onError
+// callbacks for a particular sequence, it is possible to emplement pointers
+// which will be stored in a sequencer and will virtually split the stack into
+// a set of sequences. it will store data in the sequencer object. when there is
+// a sequence in the stack, before expanding the sequnce it will mark it's start
+// (current index in the stack). then sequncer could be redirected to that stack
+// index (implement goTo or repeatCurrentSequence), also user will be able
+// to check the name of actual sequence to make more complex data calculations.
+
+// implementing onFinish method could be pretty hard, because it is very hard
+// to understand where is the end of a particular sequence: a method could expand
+// the stack with returning a new sequence. so that, if onFinish is specified for
+// a particular pattern, we could wrap the last element into a function that will
+// execute this onFinish method and return original action. just a simple decorator.
+// this could be also applied to onStart method. the only thing i have to think
+// about is how to make this pattern callback execute after stack action that
+// will be wrapped.
+
+// implementing the pointers system. all pointers will be stored in a particular
+// space inside of the sequencer object. it is a simple object with the following
+// structure:
+// pointers: {
+//   0: 'pattern1',
+//   2: 'pattern2',
+//   3: [pattern1OnFinish, pattern2OnFinish]
+// }
+// this is how the pointers object will be stored for the following patterns:
+// [{
+//   name: 'pattern1',
+//               0 in stack        1 in stack (index)
+//   sequence: [someRandomMethod, someTestMethod, ':pattern2'],
+//   onFinish: pattern1OnFinish
+// }, {
+//   name: 'pattern2',
+//              2 in stack         3 in stack (index)
+//   sequnce: [someAnotherMethod, someLastMethod],
+//   onFinish: pattern2OnFinish
+// }]
+// since the first pattern has a link to the second pattern, and they both have
+// onFinish callbacks, callbacks should be executed one after another.
+// we can also see that in pointers object on 0 and 2 indexes there are names
+// of patterns. that is how we can detect which sequence is used at the moment.
+// we can also just set the current sequence name to sequencer object.
+
+// the hardest part is to detect when the finish of the sequnce, because these
+// 2 patterns from above will look like that in the stack:
+//   0                 1               2                  3
+// [someRandomMethod, someTestMethod, someAnotherMethod, someLastMethod]
+// but i can try to implement the pattern described above.
+
 let sequencer = {
   public: {
     index: null,
+    prevResolution: null,
+    last: null,
     repeat
   },
 
@@ -20,9 +75,8 @@ export function repeat() {
 export function createNew(instance, pattern, executable) {
   this.public.index = 0
   this.index = 0
-  this.last = null
   this.pattern = pattern
-  this.sequence = pattern.sequence
+  this.stack = pattern.sequence
   this.instance = instance
 
   executable(this)
@@ -34,10 +88,10 @@ export function next(instance) {
   let { next } = this
   let { index } = this
 
-  let currentAction = this.sequence[index]
+  let currentAction = this.stack[index]
 
   let proceed = () => {
-    if (this.index + 1 < this.sequence.length) {
+    if (this.index + 1 < this.stack.length) {
       this.index += 1
       this.public.index += 1
       this.next(instance)
@@ -54,7 +108,7 @@ export function next(instance) {
     registerNamedFunction(actionResult)
 
     if (isntRepeatingSequence(actionResult)) {
-      injectIntoSequence(index + 1, actionResult, this.sequence, false)
+      injectIntoSequence(index + 1, actionResult, this.stack, false)
       return proceed()
     }
   }
@@ -62,8 +116,10 @@ export function next(instance) {
   registerNamedFunction(currentAction)
 
   if (isntRepeatingSequence(currentAction)) {
-    let step = parseAction(currentAction, instance, this.sequence, index)
+    let step = parseAction(currentAction, instance, this.stack, index)
     let executionResult = step.call(instance, this.public, proceed, this.public.index, index)
+    this.public.last = step
+    this.public.prevResolution = executionResult
 
     if (isObject(executionResult) && isFunction(executionResult.then)) {
       executionResult
