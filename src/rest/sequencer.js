@@ -1,22 +1,29 @@
 import { isFunction, isArray, isObject } from 'lodash/core'
 
 let sequencer = {
-  index: null,
+  public: {
+    index: null,
+    repeat
+  },
 
-  createNew, repeat, executeMethod, next
+  index: null,
+  createNew, repeat, next
 }
 
 export function repeat() {
-  this.index += 1
+  this.public.index += 1
+  this.index = 0
 
-  return this.last()
+  return this.next(this.instance)
 }
 
-export function createNew(pattern, executable) {
+export function createNew(instance, pattern, executable) {
+  this.public.index = 0
   this.index = 0
   this.last = null
-  this._pattern = pattern
+  this.pattern = pattern
   this.sequence = pattern.sequence
+  this.instance = instance
 
   executable(this)
 
@@ -24,11 +31,13 @@ export function createNew(pattern, executable) {
 }
 
 export function next(instance) {
-  let { index, next } = this
+  let { next } = this
+  let { index } = this
 
   let proceed = () => {
     if (this.index + 1 < this.sequence.length) {
       this.index += 1
+      this.public.index += 1
       this.next(instance)
     }
   }
@@ -36,19 +45,34 @@ export function next(instance) {
   let checkResultTypeAndProceed = (actionResult) => {
     if (actionResult === true) {
       return proceed()
+    } else if (!actionResult) {
+      return
     }
 
-    let result = parseAction(actionResult)
+    if (isFunction(actionResult) && actionResult.name) {
+      this.instance.registerMethods(_ => actionResult)
+    }
 
-    if (result === true) {
-      proceed()
+    if (isSequence(actionResult) && actionResult === `:${this.pattern.name}`) {
+      return sequencer.repeat()
+    } else {
+      injectIntoSequence(index + 1, actionResult, this.sequence, false)
+      return proceed()
     }
   }
 
-  // console.log('next 0--->', this.sequence);
-  // console.log('next 1--->', index);
-  let step = parseAction(this.sequence[index], instance, this.sequence, index)
-  let executionResult = step.call(instance, this, proceed, index)
+  let currentAction = this.sequence[index]
+
+  if (isFunction(currentAction) && currentAction.name) {
+    this.instance.registerMethods(_ => currentAction)
+  }
+
+  if (isSequence(currentAction) && currentAction === `:${this.pattern.name}`) {
+    return sequencer.repeat()
+  }
+
+  let step = parseAction(currentAction, instance, this.sequence, index)
+  let executionResult = step.call(instance, this.public, proceed, this.public.index, index)
 
   if (isObject(executionResult) && isFunction(executionResult.then)) {
     executionResult
@@ -60,12 +84,6 @@ export function next(instance) {
 
 export function parseStepResult(result, proceed) {
   return parseAction
-}
-
-export function executeMethod(executable) {
-  let executionResult = executable({ index: ++this.index, done: () => {} })
-
-  // console.log('===> result:', executionResult)
 }
 
 export function commandExists(instance, commandName) {
@@ -100,61 +118,7 @@ export function getExecutableAction(action, instance) {
   return instance._methods[action]
 }
 
-
-// sequencer = {}
-//
-// sequence = [.., .., .., .., [.., .., .., [.., .., ..]]]
-// sequencer.registerSequence(sequence)
-//
-// sequencer.next(localIndex)
-// next(index) {
-//   let proceed = () => next(index + 1)
-//   let executionResult = sequence[index](sequencer, proceed, index)
-//
-//   if (!sequence[index + 1]) {
-//     return sequence.pattern.onFinish
-//   }
-//
-//   function checkResultTypeAndProceed(result) {
-//     if (result === true) {
-//       return proceed()
-//     }
-//
-//     if (result === 'string') {
-//       executable = getExecutable(result)
-//       injectIntoStack(index, executable)
-//       return proceed()
-//     }
-//
-//     if (result === 'function') {
-//       injectIntoStack(index, result)
-//       return proceed()
-//     }
-//
-//     if (result === 'array' && validSequence(result)) {
-//       result.forEach((executable, exIndex) => {
-//         injectIntoStack(index + exIndex, executable)
-//       })
-//       return proceed()
-//     }
-//
-//     if (isFunction(pattern.onFinish)) {
-//       pattern.onFinish(index)
-//     }
-//     return false
-//   }
-//
-//   if (executionResult === 'promise') {
-//     result.then(promiseResult => {
-//       checkResultTypeAndProceed(promiseResult)
-//     })
-//   } else {
-//     checkResultTypeAndProceed(executionResult)
-//   }
-// }
-
 export function parseAction(action, instance, sequence, index) {
-  // console.log('parseAction ------>', action)
   if (isSequence(action) || isArray(action)) {
     return expandSequence(action, instance, sequence, index)
   }
@@ -185,11 +149,11 @@ export function expandSequence(action, instance, seq, index) {
   return parseAction(expandedResult, instance, seq, index)
 }
 
-export function injectIntoSequence(index, itemsToInject, sequence) {
+export function injectIntoSequence(index, itemsToInject, sequence, replace = true) {
   if (!isArray(itemsToInject)) {
-    sequence.splice(index, 1, itemsToInject)
+    sequence.splice(index, +replace, itemsToInject)
   } else {
-    sequence.splice.apply(sequence, [index, 1].concat(itemsToInject))
+    sequence.splice.apply(sequence, [index, +replace].concat(itemsToInject))
   }
 }
 
@@ -199,7 +163,7 @@ export function runSequence(sequencer, instance, pattern) {
 
 export function executePattern(instance, pattern) {
   return sequencer.createNew(
-    pattern,
+    instance, pattern,
     sequencer => runSequence(sequencer, instance, pattern)
   )
 }

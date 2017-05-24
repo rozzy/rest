@@ -6,7 +6,7 @@ function promiseFunc(seq, done) {
   let promise = new Promise((resolve, reject) => {
     setTimeout(() => {
       console.log('setTimeout in a promise')
-      resolve(true)
+      resolve(() => { return console.log('injected from promise result'), true })
     }, 2000)
   })
 
@@ -44,44 +44,18 @@ bot
   })
   .loadPatterns((restSettings, instance) => {
     return [
-      // {
-      //   name: 'main',
-      //   sequence: [
-      //     ':explore',
-      //     (prevResolution, index, done) => {
-      //       if (prevResolution === true) {
-      //         return ':listenToNewTracks'
-      //       } else {
-      //         return false
-      //       }
-      //     },
-      //     (prevResolution, index, done, sequencer) => {
-      //       if (prevResolution === true) return sequencer.repeat()
-      //     }
-      // if (instance.data.loaded <= instance.data.available) {
-      //   return ['loadNext', 'listenNext']
-      // } else {
-      //   let track = foundNextTrack(instance)
-      //   listenToTheTrack(track)
-      //
-      //   return true
-      // }
-      //   ]
-      // },
       {
         name: 'main',
-        sequence: [':run2', () => { return console.log('5'), true }, ':run2'],
+        sequence: [
+          function registerFromSequence() {
+            console.log('i am registered now')
+            return true
+          },
+          'registerFromSequence'
+        ],
         onFinish: seq => console.log('finished', seq),
         onError: err => console.log('err')
       },
-      {
-        name: 'run2',
-        sequence: [
-          () => { return console.log('message before Promise'), true },
-          promiseFunc,
-          () => { return console.log('message after Promise'), true }]
-      }
     ]
   })
-  .run('run2')
-  // .run(['listenNext', () => { return console.log('2'), true }, ':main'])
+  .run('main')
