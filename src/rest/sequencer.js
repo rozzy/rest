@@ -34,6 +34,8 @@ export function next(instance) {
   let { next } = this
   let { index } = this
 
+  let currentAction = this.sequence[index]
+
   let proceed = () => {
     if (this.index + 1 < this.sequence.length) {
       this.index += 1
@@ -49,57 +51,45 @@ export function next(instance) {
       return
     }
 
-    if (isFunction(actionResult) && actionResult.name) {
-      this.instance.registerMethods(_ => actionResult)
-    }
+    registerNamedFunction(actionResult)
 
-    if (isSequence(actionResult) && actionResult === `:${this.pattern.name}`) {
-      return sequencer.repeat()
-    } else {
+    if (isntRepeatingSequence(actionResult)) {
       injectIntoSequence(index + 1, actionResult, this.sequence, false)
       return proceed()
     }
   }
 
-  let currentAction = this.sequence[index]
+  registerNamedFunction(currentAction)
 
-  if (isFunction(currentAction) && currentAction.name) {
-    this.instance.registerMethods(_ => currentAction)
-  }
+  if (isntRepeatingSequence(currentAction)) {
+    let step = parseAction(currentAction, instance, this.sequence, index)
+    let executionResult = step.call(instance, this.public, proceed, this.public.index, index)
 
-  if (isSequence(currentAction) && currentAction === `:${this.pattern.name}`) {
-    return sequencer.repeat()
-  }
-
-  let step = parseAction(currentAction, instance, this.sequence, index)
-  let executionResult = step.call(instance, this.public, proceed, this.public.index, index)
-
-  if (isObject(executionResult) && isFunction(executionResult.then)) {
-    executionResult
+    if (isObject(executionResult) && isFunction(executionResult.then)) {
+      executionResult
       .then(checkResultTypeAndProceed, checkResultTypeAndProceed)
-  } else if (!!executionResult) {
-    checkResultTypeAndProceed(executionResult)
+    } else if (!!executionResult) {
+      checkResultTypeAndProceed(executionResult)
+    }
   }
 }
 
-export function parseStepResult(result, proceed) {
-  return parseAction
+export function registerNamedFunction(func) {
+  if (isFunction(func) && func.name) {
+    sequencer.instance.registerMethods(_ => func)
+  }
 }
 
-export function commandExists(instance, commandName) {
-  return isFunction(instance._methods[commandName])
-}
+export function isntRepeatingSequence(action) {
+  let isRepeatingSequence = (
+    isSequence(action) && action === `:${sequencer.pattern.name}`
+  )
 
-export function runCommand(command) {
-  if (typeof command === 'string' && isSequence(this, command)) {
-    return executeSequence.call(this, command)
+  if (isRepeatingSequence) {
+    sequencer.repeat()
   }
 
-  if (isFunction(command) || commandExists(this, command)) {
-    return execute(this, command)
-  }
-
-  throw new Error('Command doesn\'t exist', command)
+  return !isRepeatingSequence
 }
 
 export function isSequence(givenAction) {
@@ -174,64 +164,6 @@ export function isActionRegistered(action, instance) {
     isFunction(instance._methods[action])
   )
 }
-
-export function checkSequenceAction(action) {
-  let isString = typeof action === 'string'
-  let isFunc = isFunction(action)
-
-  if (!isFunc && !isString) {
-    throw new TypeError('Sequence could only contain strings or functions')
-  }
-
-  if (!isFunc && !isActionRegistered.call(this, action)) {
-    throw new Error(`There is no registered action "${action}"`)
-  }
-
-  return true
-}
-
-export function checkPatternSequence(sequence, context) {
-  if (!sequence || !sequence.map) {
-    throw new TypeError('"sequence" should be an array of sequences')
-  }
-
-  return sequence.map(checkSequenceAction.bind(context))
-}
-
-export function checkPattern(pattern) {
-  if (!isObject(pattern)) {
-    throw new TypeError('Pattern should be a plain object')
-  }
-
-  if (!pattern.hasOwnProperty('sequence')) {
-    throw new TypeError('Pattern should contain the "sequence" property')
-  }
-
-  if (!isArray(pattern.sequence)) {
-    throw new TypeError('"Sequence" property should be an array of actions (see docs: sequence)')
-  }
-
-  checkPatternSequence(pattern.sequence, this)
-
-  return true
-}
-
-export function checkAllPatterns(patterns, context) {
-  return patterns.forEach(checkPattern.bind(context))
-}
-
-export function isMethodRegistered(wantedMethod) {
-  if (!this._methods) {
-    return false
-  }
-
-  let foundMethod = this._methods.filter(method => {
-    return method === wantedMethod
-  })
-
-  return foundMethod && foundMethod.length > 0
-}
-
 
 // looks if the pattern was registered previously in the instance
 // returns it when found
