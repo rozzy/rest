@@ -14,7 +14,12 @@ function promiseFunc(seq, done) {
 }
 
 var bot = rest
-  .new()
+  .new({
+    adapter: 'soundcloud',
+    authorization: {
+      manual: false
+    }
+  })
   .registerMethods((restSettings, instance) => {
     return function authorize() {
       // example of calling super method from the adapter
@@ -32,53 +37,20 @@ var bot = rest
   .loadPatterns((restSettings, instance) => {
     return [
       {
-        name: 'main',
+        name: 'pattern1',
         sequence: [
-          function registerFromSequence(seq) {
-            console.log(this)
-            return true
-          },
-        ],
-        onFinish: seq => console.log('finished', seq),
-        onError: err => console.log('err')
+          () => !console.log(0),
+          () => !console.log(1),
+          ':pattern2'
+        ]
+      },
+      {
+        name: 'pattern2',
+        sequence: [
+          () => !console.log(2),
+          (data, done, seq, index, stackIndex) => !console.log(3, data),
+        ]
       },
     ]
   })
-  .run('main')
-
-  var bot = rest
-    .new()
-    .registerMethods((restSettings, instance) => {
-      return function authorize() {
-        // example of calling super method from the adapter
-        this._adapter.methods.authorize.apply(this, arguments)
-      }
-    })
-    .registerMethods((restSettings, instance) => {
-      return {
-        listenNext(sequencer, done, index) {
-          console.log('1')
-          return true
-        }
-      }
-    })
-    .loadPatterns((restSettings, instance) => {
-      return [
-        {
-          name: 'pattern1',
-          sequence: [
-            () => !console.log(0),
-            () => !console.log(1),
-            ':pattern2'
-          ]
-        },
-        {
-          name: 'pattern2',
-          sequence: [
-            () => !console.log(2),
-            (seq) => !console.log(3),
-          ]
-        },
-      ]
-    })
-    .run('pattern1')
+  .run('pattern1')

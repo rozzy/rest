@@ -24,11 +24,7 @@ export function requestHandler(instance, req, res) {
       throw new Error(error)
     } else {
       // Client is now authorized and able to make API calls
-      if (!instance.data) {
-        instance.data = {}
-      }
-
-      instance.data.accessToken = accessToken
+      instance._data.accessToken = accessToken
       instance.SC = SC
 
       writeToken('soundcloud', accessToken)
@@ -43,6 +39,9 @@ export function authorizeWithToken(credentials, settings, instance, accessToken)
     secret: credentials.clientSecret,
     uri: credentials.redirectURI
   })
+
+  instance._data.accessToken = accessToken
+  instance.SC = SC
 
   // TODO
   // check here if user can make calls with this accessToken

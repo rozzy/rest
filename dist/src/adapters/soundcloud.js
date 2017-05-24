@@ -46,7 +46,7 @@ function requestHandler(instance, req, res) {
         instance.data = {};
       }
 
-      instance.data.accessToken = accessToken;
+      instance.__data.accessToken = accessToken;
       instance.SC = _nodeSoundcloud2.default;
 
       (0, _index.writeToken)('soundcloud', accessToken);

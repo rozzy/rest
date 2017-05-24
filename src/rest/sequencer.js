@@ -117,7 +117,11 @@ export function next(instance) {
 
   if (isntRepeatingSequence(currentAction)) {
     let step = parseAction(currentAction, instance, this.stack, index)
-    let executionResult = step.call(instance, this.public, proceed, this.public.index, index)
+    let executionResult = step.call(
+      instance,
+      instance._data, proceed, this.public, this.public.index, index
+    )
+
     this.public.last = step
     this.public.prevResolution = executionResult
 

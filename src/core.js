@@ -61,6 +61,7 @@ export default (function () {
     let instance = {
       adapters: rest.adapters,
       _methods: {},
+      _data: {},
 
       run, useAdapter, loadPatterns, registerMethods, isMethodRegistered
     }
