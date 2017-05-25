@@ -60,7 +60,8 @@ export function authorizeWithoutToken(credentials, settings, instance) {
 
   createServer(
     instance.options.authorization.redirectURI,
-    requestHandler.bind(requestHandler, instance)
+    requestHandler.bind(requestHandler, instance),
+    instance.options.authorization.port
   )
 
   spawn('open', [authLink])

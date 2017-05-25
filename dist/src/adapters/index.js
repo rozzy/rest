@@ -34,20 +34,18 @@ function createAuthFile(callback, err, data) {
     if (!callback) {
       throw new Error(err);
     } else {
-      callback(err);
+      return callback(err);
     }
   } else if (callback) {
-    callback(null, data);
+    return callback(null, data);
   }
-
-  return '';
 }
 
 function createAuthfileIfNotExist(callback) {
   var exists = _fs2.default.existsSync(AUTH_FILE);
 
   if (!exists) {
-    _fs2.default.writeFile(AUTH_FILE, { flag: 'wx' }, createAuthFile.bind(null, callback));
+    _fs2.default.writeFile(AUTH_FILE, '', { flag: 'wx' }, createAuthFile.bind(null, callback));
   } else if (callback) {
     return callback();
   }
