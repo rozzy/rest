@@ -23,12 +23,11 @@ export function createAuthfileIfNotExist(callback) {
   let exists = fs.existsSync(AUTH_FILE)
 
   if (!exists) {
-    createAuthFile.bind(null, callback)
-
     fs.writeFile(
       AUTH_FILE,
+      '',
       { flag: 'wx' },
-      ''
+      createAuthFile.bind(null, callback)
     )
   } else if (callback) {
     return callback()

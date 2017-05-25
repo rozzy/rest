@@ -27,28 +27,27 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // there is a .gitignored file in the folder
 // which creates automatically (if not exists)
 // and stores the auth tokens to not authorize user several times in a row
-var AUTH_FILE = 'authtokens';
+var AUTH_FILE = _path2.default.join(__dirname, 'authtokens');
 
 function createAuthFile(callback, err, data) {
   if (err) {
     if (!callback) {
       throw new Error(err);
     } else {
-      return callback(err);
+      callback(err);
     }
   } else if (callback) {
-    return callback(null, data);
+    callback(null, data);
   }
+
+  return '';
 }
 
 function createAuthfileIfNotExist(callback) {
   var exists = _fs2.default.existsSync(AUTH_FILE);
 
-  console.log('exists?', exists);
-  console.log(__dirname, _path2.default.join(__dirname, AUTH_FILE));
-
   if (!exists) {
-    console.log('write', _fs2.default.writeFile(AUTH_FILE, { flag: 'wx' }, createAuthFile.bind(null, callback)));
+    _fs2.default.writeFile(AUTH_FILE, { flag: 'wx' }, createAuthFile.bind(null, callback));
   } else if (callback) {
     return callback();
   }

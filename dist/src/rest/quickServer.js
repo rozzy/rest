@@ -23,7 +23,7 @@ function requestHandlerWrapper(requestHandler) {
 
     response.setHeader("Content-Type", "text/html");
     response.write("authorizing...");
-    response.write("<script>var popup = window.open(location, '_self', '');popup.close();</script>");
+    response.write("<script>window.close();</script>");
     response.end();
   };
 }

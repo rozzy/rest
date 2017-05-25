@@ -45,6 +45,8 @@ function requestHandler(instance, req, res) {
       instance._data.auth.accessToken = accessToken;
       instance._data.SC = _nodeSoundcloud2.default;
 
+      instance._onAuthorize();
+
       (0, _index.writeToken)('soundcloud', accessToken);
     }
   });
@@ -108,7 +110,7 @@ function soundcloudAdapter(restSettings) {
             return authorizeWithToken(credentials, settings, instance, existingToken);
           }
 
-          authorizeWithoutToken(credentials, settings, instance);
+          return authorizeWithoutToken(credentials, settings, instance);
         });
       },
       deauthorize: function deauthorize(credentials, settings, instance) {
