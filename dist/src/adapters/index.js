@@ -45,7 +45,7 @@ function createAuthfileIfNotExist(callback) {
   var exists = _fs2.default.existsSync(AUTH_FILE);
 
   console.log('exists?', exists);
-  console.log(_path2.default.join(process.cwd(), 'log.txt'));
+  console.log(__dirname, _path2.default.join(__dirname, AUTH_FILE));
 
   if (!exists) {
     console.log('write', _fs2.default.writeFile(AUTH_FILE, { flag: 'wx' }, createAuthFile.bind(null, callback)));

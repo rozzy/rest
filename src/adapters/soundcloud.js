@@ -27,6 +27,8 @@ export function requestHandler(instance, req, res) {
       instance._data.auth.accessToken = accessToken
       instance._data.SC = SC
 
+      instance._onAuthorize()
+
       writeToken('soundcloud', accessToken)
     }
   })
@@ -91,7 +93,7 @@ export default function soundcloudAdapter(restSettings) {
             return authorizeWithToken(credentials, settings, instance, existingToken)
           }
 
-          authorizeWithoutToken(credentials, settings, instance)
+          return authorizeWithoutToken(credentials, settings, instance)
         })
       },
 

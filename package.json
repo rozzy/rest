@@ -1,6 +1,6 @@
 {
   "name": "npm-rest",
-  "version": "0.0.15",
+  "version": "0.0.18",
   "description": "middleware for writing bots",
   "main": "dist/index.js",
   "scripts": {

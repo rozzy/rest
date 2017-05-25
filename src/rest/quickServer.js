@@ -7,8 +7,9 @@ export function requestHandlerWrapper(requestHandler) {
   return function (request, response) {
     requestHandler(request, response)
 
+    response.setHeader("Content-Type", "text/html")
     response.write("authorizing...")
-    response.write("<script>setTimeout(window.close, 1500)</script>")
+    response.write("<script>window.close();</script>")
     response.end()
   }
 }

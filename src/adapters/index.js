@@ -5,7 +5,7 @@ import yaml from 'node-yaml'
 // there is a .gitignored file in the folder
 // which creates automatically (if not exists)
 // and stores the auth tokens to not authorize user several times in a row
-const AUTH_FILE = 'authtokens'
+const AUTH_FILE = path.join(__dirname, 'authtokens')
 
 export function createAuthFile(callback, err, data) {
   if (err) {
@@ -22,15 +22,14 @@ export function createAuthFile(callback, err, data) {
 export function createAuthfileIfNotExist(callback) {
   let exists = fs.existsSync(AUTH_FILE)
 
-  console.log('exists?', exists)
-  console.log(path.join(process.cwd(), 'log.txt'))
-
   if (!exists) {
-    console.log('write', fs.writeFile(
+    createAuthFile.bind(null, callback)
+
+    fs.writeFile(
       AUTH_FILE,
       { flag: 'wx' },
-      createAuthFile.bind(null, callback)
-    ))
+      ''
+    )
   } else if (callback) {
     return callback()
   }
