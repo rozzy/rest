@@ -45,6 +45,17 @@ export default (function () {
   }
 
   /*
+    authorize
+    exposes an authorization method in case user wants to authorize before run
+  */
+  rest.authorize = function () {
+    return this._adapter && this._adapter.methods && (
+      typeof this._adapter.methods.authorize === 'function' &&
+      this._adapter.methods.authorize.apply(this, arguments)
+    ), this
+  }
+
+  /*
     new
     creates a new instance of the middleware with specified settings
     returns the instance

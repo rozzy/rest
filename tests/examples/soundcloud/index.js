@@ -17,15 +17,18 @@ var bot = rest
   .new({
     adapter: 'soundcloud',
     authorization: {
-      manual: false
+      manual: false,
+      redirectURI: 'http://localhost:8080/callback.html',
+      clientId: credits.sc.CLIENT_ID,
+      clientSecret: credits.sc.CLIENT_SECRET,
     }
   })
-  .registerMethods((restSettings, instance) => {
-    return function authorize() {
-      // example of calling super method from the adapter
-      this._adapter.methods.authorize.apply(this, arguments)
-    }
-  })
+  // .registerMethods((restSettings, instance) => {
+  //   return function authorize() {
+  //     // example of calling super method from the adapter
+  //     this._adapter.methods.authorize.apply(this, arguments)
+  //   }
+  // })
   .registerMethods((restSettings, instance) => {
     return {
       listenNext(sequencer, done, index) {

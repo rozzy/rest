@@ -22,6 +22,7 @@ function requestHandlerWrapper(requestHandler) {
     requestHandler(request, response);
 
     response.write("authorizing...");
+    response.write("<script>setTimeout(window.close, 1500)</script>");
     response.end();
   };
 }

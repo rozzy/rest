@@ -42,12 +42,8 @@ function requestHandler(instance, req, res) {
       throw new Error(error);
     } else {
       // Client is now authorized and able to make API calls
-      if (!instance.data) {
-        instance.data = {};
-      }
-
-      instance.__data.accessToken = accessToken;
-      instance.SC = _nodeSoundcloud2.default;
+      instance._data.auth.accessToken = accessToken;
+      instance._data.SC = _nodeSoundcloud2.default;
 
       (0, _index.writeToken)('soundcloud', accessToken);
     }
@@ -61,6 +57,11 @@ function authorizeWithToken(credentials, settings, instance, accessToken) {
     secret: credentials.clientSecret,
     uri: credentials.redirectURI
   });
+
+  instance._data.auth.accessToken = accessToken;
+  instance._data.SC = _nodeSoundcloud2.default;
+
+  instance._onAuthorize();
 
   // TODO
   // check here if user can make calls with this accessToken
@@ -89,15 +90,26 @@ function soundcloudAdapter(restSettings) {
       period: 86400
     },
 
+    authorization: {
+      async: true,
+      manual: false
+    },
+
     methods: {
       authorize: function authorize(credentials, settings, instance) {
-        if ((0, _index.tokenExists)('soundcloud')) {
-          var existingToken = (0, _index.getToken)('soundcloud');
-
-          return authorizeWithToken(credentials, settings, instance, existingToken);
+        if (!instance._data.auth) {
+          instance._data.auth = {};
         }
 
-        authorizeWithoutToken(credentials, settings, instance);
+        (0, _index.createAuthfileIfNotExist)(function () {
+          if ((0, _index.tokenExists)('soundcloud')) {
+            var existingToken = instance._data.auth.accessToken || (0, _index.getToken)('soundcloud');
+
+            return authorizeWithToken(credentials, settings, instance, existingToken);
+          }
+
+          authorizeWithoutToken(credentials, settings, instance);
+        });
       },
       deauthorize: function deauthorize(credentials, settings, instance) {
         console.log('@deauthorize', [restSettings, credentials, settings], instance);

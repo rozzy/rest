@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+var _lodash = require('lodash');
+
 var _instanceMethods = require('./rest/instanceMethods');
 
 var _adapterMethods = require('./rest/adapterMethods');
@@ -20,10 +22,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 exports.default = function () {
   var defaultSettings = { // default rest settings
-    adapter: 'custom', // @string: set of rules for certain API
+    adapter: null, // @string: set of rules for certain API
     threads: 1, // @integer: maximum number of threads app will have
     authorization: { // @object: authorization data for adapter API
-      manual: false // @bool: tries to authorize on start, when true
+      manual: true // @bool: doesn't try to authorize on start, when true
     },
     limits: null };
 
@@ -58,23 +60,46 @@ exports.default = function () {
   };
 
   /*
+    authorize
+    exposes an authorization method in case user wants to authorize before run
+  */
+  rest.authorize = function () {
+    return this._adapter && this._adapter.methods && typeof this._adapter.methods.authorize === 'function' && this._adapter.methods.authorize.apply(this, arguments), this;
+  };
+
+  /*
     new
     creates a new instance of the middleware with specified settings
     returns the instance
   */
   rest.new = function (instanceSettings) {
+    if (!!instanceSettings && !(0, _lodash.isObject)(instanceSettings)) {
+      throw new TypeError('instanceSettings should be an object');
+    }
+
+    if (!instanceSettings) {
+      instanceSettings = {};
+    }
+
     var instance = {
       adapters: rest.adapters,
       _methods: {},
+      _data: {},
 
       run: _instanceMethods.run, useAdapter: _adapterMethods.useAdapter, loadPatterns: _instanceMethods.loadPatterns, registerMethods: _instanceMethods.registerMethods, isMethodRegistered: _instanceMethods.isMethodRegistered
     };
 
     // extending with authorization module
-    instance = Object.assign({}, instance, _auth2.default);
-    instance.options = Object.assign({}, defaultSettings, instanceSettings);
+    instance = (0, _lodash.merge)({}, instance, _auth2.default);
+    instance.options = (0, _lodash.merge)({}, defaultSettings, instanceSettings);
 
-    instance.useAdapter(instanceSettings.adapter);
+    if (instanceSettings.adapter) {
+      instance.useAdapter(instanceSettings.adapter);
+    } else {
+      // in case that user wants to use just a sequencer
+      // without attaching any adapters
+      instance._adapter = { methods: {} };
+    }
 
     return instance;
   };

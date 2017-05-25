@@ -6,6 +6,9 @@ Object.defineProperty(exports, "__esModule", {
 exports.adapterIsValid = adapterIsValid;
 exports.findAdapter = findAdapter;
 exports.useAdapter = useAdapter;
+
+var _lodash = require('lodash');
+
 function adapterIsValid(adapter) {
   if (!adapter.hasOwnProperty('name') || typeof adapter.name !== 'string') {
     return new Error('Adapter should contain the "name" property (string)');
@@ -51,10 +54,16 @@ function useAdapter(adapterName) {
     throw new Error('Pass an adapter name to the "useAdapter" method');
   }
 
-  this._adapter = findAdapter(this.adapters, adapterName);
+  var adapter = findAdapter(this.adapters, adapterName);
+
+  this._adapter = adapter;
 
   if (!this._methods) {
     this._methods = {};
+  }
+
+  if (adapter.authorization) {
+    this.options.authorization = (0, _lodash.merge)({}, adapter.authorization, this.options.authorization);
   }
 
   this._methods = Object.assign({}, this._methods, this._adapter.methods);

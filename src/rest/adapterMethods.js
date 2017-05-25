@@ -1,3 +1,5 @@
+import { merge } from 'lodash'
+
 export function adapterIsValid(adapter) {
   if (!adapter.hasOwnProperty('name') || typeof adapter.name !== 'string') {
     return new Error('Adapter should contain the "name" property (string)')
@@ -43,12 +45,22 @@ export function useAdapter(adapterName) {
     throw new Error('Pass an adapter name to the "useAdapter" method')
   }
 
-  this._adapter = findAdapter(this.adapters, adapterName)
+  let adapter = findAdapter(this.adapters, adapterName)
+
+  this._adapter = adapter
 
   if (!this._methods) {
     this._methods = {}
   }
-  
+
+  if (adapter.authorization) {
+    this.options.authorization = merge(
+      {},
+      adapter.authorization,
+      this.options.authorization
+    )
+  }
+
   this._methods = Object.assign({}, this._methods, this._adapter.methods)
 
   return this

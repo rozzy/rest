@@ -1,9 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 var _core = require('./src/core');
 
 var _core2 = _interopRequireDefault(_core);
@@ -16,4 +12,4 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 _core2.default.registerAdapter(_soundcloud2.default);
 
-exports.default = _core2.default;
+module.exports = _core2.default;

@@ -1,4 +1,5 @@
 import fs from 'fs'
+import path from 'path'
 import yaml from 'node-yaml'
 
 // there is a .gitignored file in the folder
@@ -19,17 +20,20 @@ export function createAuthFile(callback, err, data) {
 }
 
 export function createAuthfileIfNotExist(callback) {
-  return fs.existsSync(AUTH_FILE, exists => {
-    if (!exists) {
-      fs.writeFile(
-        AUTH_FILE,
-        { flag: 'wx' },
-        createAuthFile.bind(null, callback)
-      )
-    } else if (callback) {
-      callback()
-    }
-  })
+  let exists = fs.existsSync(AUTH_FILE)
+
+  console.log('exists?', exists)
+  console.log(path.join(process.cwd(), 'log.txt'))
+
+  if (!exists) {
+    console.log('write', fs.writeFile(
+      AUTH_FILE,
+      { flag: 'wx' },
+      createAuthFile.bind(null, callback)
+    ))
+  } else if (callback) {
+    return callback()
+  }
 }
 
 export function getAuthfileContent() {
@@ -43,8 +47,6 @@ export function getToken(adapter) {
 }
 
 export function writeToken(adapter, token) {
-  createAuthfileIfNotExist()
-
   let content = getAuthfileContent()
   content[adapter] = token
 

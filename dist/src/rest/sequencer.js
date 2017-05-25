@@ -6,44 +6,98 @@ Object.defineProperty(exports, "__esModule", {
 exports.repeat = repeat;
 exports.createNew = createNew;
 exports.next = next;
-exports.executeMethod = executeMethod;
-exports.commandExists = commandExists;
-exports.runCommand = runCommand;
+exports.registerNamedFunction = registerNamedFunction;
+exports.isntRepeatingSequence = isntRepeatingSequence;
 exports.isSequence = isSequence;
 exports.getExecutableAction = getExecutableAction;
-exports.executeAction = executeAction;
-exports.parseCurrentStep = parseCurrentStep;
+exports.parseAction = parseAction;
 exports.expandSequence = expandSequence;
 exports.injectIntoSequence = injectIntoSequence;
 exports.runSequence = runSequence;
 exports.executePattern = executePattern;
 exports.isActionRegistered = isActionRegistered;
-exports.checkSequenceAction = checkSequenceAction;
-exports.checkPatternSequence = checkPatternSequence;
-exports.checkPattern = checkPattern;
-exports.checkAllPatterns = checkAllPatterns;
-exports.isMethodRegistered = isMethodRegistered;
 exports.findPattern = findPattern;
 
 var _core = require('lodash/core');
 
-var sequencer = {
-  index: null,
+// TODO
+// how to improve sequencer:
 
-  createNew: createNew, repeat: repeat, executeMethod: executeMethod, next: next
+// to allow a user repeat a particular sequence, execute onStart/onFinish/onError
+// callbacks for a particular sequence, it is possible to emplement pointers
+// which will be stored in a sequencer and will virtually split the stack into
+// a set of sequences. it will store data in the sequencer object. when there is
+// a sequence in the stack, before expanding the sequnce it will mark it's start
+// (current index in the stack). then sequncer could be redirected to that stack
+// index (implement goTo or repeatCurrentSequence), also user will be able
+// to check the name of actual sequence to make more complex data calculations.
+
+// implementing onFinish method could be pretty hard, because it is very hard
+// to understand where is the end of a particular sequence: a method could expand
+// the stack with returning a new sequence. so that, if onFinish is specified for
+// a particular pattern, we could wrap the last element into a function that will
+// execute this onFinish method and return original action. just a simple decorator.
+// this could be also applied to onStart method. the only thing i have to think
+// about is how to make this pattern callback execute after stack action that
+// will be wrapped.
+
+// implementing the pointers system. all pointers will be stored in a particular
+// space inside of the sequencer object. it is a simple object with the following
+// structure:
+// pointers: {
+//   0: 'pattern1',
+//   2: 'pattern2',
+//   3: [pattern1OnFinish, pattern2OnFinish]
+// }
+// this is how the pointers object will be stored for the following patterns:
+// [{
+//   name: 'pattern1',
+//               0 in stack        1 in stack (index)
+//   sequence: [someRandomMethod, someTestMethod, ':pattern2'],
+//   onFinish: pattern1OnFinish
+// }, {
+//   name: 'pattern2',
+//              2 in stack         3 in stack (index)
+//   sequnce: [someAnotherMethod, someLastMethod],
+//   onFinish: pattern2OnFinish
+// }]
+// since the first pattern has a link to the second pattern, and they both have
+// onFinish callbacks, callbacks should be executed one after another.
+// we can also see that in pointers object on 0 and 2 indexes there are names
+// of patterns. that is how we can detect which sequence is used at the moment.
+// we can also just set the current sequence name to sequencer object.
+
+// the hardest part is to detect when the finish of the sequnce, because these
+// 2 patterns from above will look like that in the stack:
+//   0                 1               2                  3
+// [someRandomMethod, someTestMethod, someAnotherMethod, someLastMethod]
+// but i can try to implement the pattern described above.
+
+var sequencer = {
+  public: {
+    index: null,
+    prevResolution: null,
+    last: null,
+    repeat: repeat
+  },
+
+  index: null,
+  createNew: createNew, repeat: repeat, next: next
 };
 
 function repeat() {
-  this.index += 1;
+  this.public.index += 1;
+  this.index = 0;
 
-  return this.last();
+  return this.next(this.instance);
 }
 
-function createNew(pattern, executable) {
+function createNew(instance, pattern, executable) {
+  this.public.index = 0;
   this.index = 0;
-  this.last = null;
-  this._pattern = pattern;
-  this.sequence = pattern.sequence;
+  this.pattern = pattern;
+  this.stack = pattern.sequence;
+  this.instance = instance;
 
   executable(this);
 
@@ -53,49 +107,68 @@ function createNew(pattern, executable) {
 function next(instance) {
   var _this = this;
 
-  var index = this.index,
-      next = this.next;
+  var next = this.next;
+  var index = this.index;
 
+
+  var currentAction = this.stack[index];
 
   var proceed = function proceed() {
-    if (_this.index + 1 < _this.sequence.length) {
+    if (_this.index + 1 < _this.stack.length) {
       _this.index += 1;
+      _this.public.index += 1;
       _this.next(instance);
     }
   };
 
-  // console.log('next 0--->', this.sequence);
-  // console.log('next 1--->', index);
-  var step = parseCurrentStep(this.sequence[index], instance, this.sequence, index);
-  var executionResults = step.call(instance, this, proceed, index);
+  var checkResultTypeAndProceed = function checkResultTypeAndProceed(actionResult) {
+    if (actionResult === true) {
+      return proceed();
+    } else if (!actionResult) {
+      return;
+    }
 
-  if (executionResults === true) {
-    return proceed();
+    registerNamedFunction(actionResult);
+
+    if (isntRepeatingSequence(actionResult)) {
+      injectIntoSequence(index + 1, actionResult, _this.stack, false);
+      return proceed();
+    }
+  };
+
+  registerNamedFunction(currentAction);
+
+  if (isntRepeatingSequence(currentAction)) {
+    var step = parseAction(currentAction, instance, this.stack, index);
+    var executionResult = step.call(instance, instance._data, proceed, this.public, this.public.index, index);
+
+    this.public.last = step;
+    this.public.prevResolution = executionResult;
+
+    if ((0, _core.isObject)(executionResult) && (0, _core.isFunction)(executionResult.then)) {
+      executionResult.then(checkResultTypeAndProceed, checkResultTypeAndProceed);
+    } else if (!!executionResult) {
+      checkResultTypeAndProceed(executionResult);
+    }
   }
-
-  // if (executionResults === )
 }
 
-function executeMethod(executable) {
-  var executionResults = executable({ index: ++this.index, done: function done() {} });
-
-  // console.log('===> result:', executionResults)
+function registerNamedFunction(func) {
+  if ((0, _core.isFunction)(func) && func.name) {
+    sequencer.instance.registerMethods(function (_) {
+      return func;
+    });
+  }
 }
 
-function commandExists(instance, commandName) {
-  return (0, _core.isFunction)(instance._methods[commandName]);
-}
+function isntRepeatingSequence(action) {
+  var isRepeatingSequence = isSequence(action) && action === ':' + sequencer.pattern.name;
 
-function runCommand(command) {
-  if (typeof command === 'string' && isSequence(this, command)) {
-    return executeSequence.call(this, command);
+  if (isRepeatingSequence) {
+    sequencer.repeat();
   }
 
-  if ((0, _core.isFunction)(command) || commandExists(this, command)) {
-    return execute(this, command);
-  }
-
-  throw new Error('Command doesn\'t exist', command);
+  return !isRepeatingSequence;
 }
 
 function isSequence(givenAction) {
@@ -114,69 +187,8 @@ function getExecutableAction(action, instance) {
   return instance._methods[action];
 }
 
-function executeAction(action, instance, sequencer) {
-  var executableAction = getExecutableAction(action, instance);
-
-  sequencer.executeMethod(function (execution) {
-    return executableAction.call(instance, sequencer, execution.done, execution.index);
-  });
-}
-
-// sequencer = {}
-//
-// sequence = [.., .., .., .., [.., .., .., [.., .., ..]]]
-// sequencer.registerSequence(sequence)
-//
-// sequencer.next(localIndex)
-// next(index) {
-//   let proceed = () => next(index + 1)
-//   let executionResult = sequence[index](sequencer, proceed, index)
-//
-//   if (!sequence[index + 1]) {
-//     return sequence.pattern.onFinish
-//   }
-//
-//   function checkResultTypeAndProceed(result) {
-//     if (result === true) {
-//       return proceed()
-//     }
-//
-//     if (result === 'string') {
-//       executable = getExecutable(result)
-//       injectIntoStack(index, executable)
-//       return proceed()
-//     }
-//
-//     if (result === 'function') {
-//       injectIntoStack(index, result)
-//       return proceed()
-//     }
-//
-//     if (result === 'array' && validSequence(result)) {
-//       result.forEach((executable, exIndex) => {
-//         injectIntoStack(index + exIndex, executable)
-//       })
-//       return proceed()
-//     }
-//
-//     if (isFunction(pattern.onFinish)) {
-//       pattern.onFinish(index)
-//     }
-//     return false
-//   }
-//
-//   if (executionResult === 'promise') {
-//     result.then(promiseResult => {
-//       checkResultTypeAndProceed(promiseResult)
-//     })
-//   } else {
-//     checkResultTypeAndProceed(executionResult)
-//   }
-// }
-
-function parseCurrentStep(action, instance, sequence, index) {
-  // console.log('parseCurrentStep ------>', action)
-  if (isSequence(action)) {
+function parseAction(action, instance, sequence, index) {
+  if (isSequence(action) || (0, _core.isArray)(action)) {
     return expandSequence(action, instance, sequence, index);
   }
 
@@ -192,20 +204,27 @@ function parseCurrentStep(action, instance, sequence, index) {
 }
 
 function expandSequence(action, instance, seq, index) {
-  var _findPattern = findPattern(instance, action),
-      sequence = _findPattern.sequence;
+  var sequence = void 0;
+
+  if ((0, _core.isArray)(action)) {
+    sequence = action;
+  } else {
+    sequence = findPattern(instance, action).sequence;
+  }
 
   injectIntoSequence(index, sequence, seq);
 
   var expandedResult = seq[index];
-  return parseCurrentStep(expandedResult, instance, seq, index);
+  return parseAction(expandedResult, instance, seq, index);
 }
 
 function injectIntoSequence(index, itemsToInject, sequence) {
+  var replace = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+
   if (!(0, _core.isArray)(itemsToInject)) {
-    sequence.splice(index, 1, itemsToInject);
+    sequence.splice(index, +replace, itemsToInject);
   } else {
-    sequence.splice.apply(sequence, [index, 1].concat(itemsToInject));
+    sequence.splice.apply(sequence, [index, +replace].concat(itemsToInject));
   }
 }
 
@@ -214,70 +233,13 @@ function runSequence(sequencer, instance, pattern) {
 }
 
 function executePattern(instance, pattern) {
-  return sequencer.createNew(pattern, function (sequencer) {
+  return sequencer.createNew(instance, pattern, function (sequencer) {
     return runSequence(sequencer, instance, pattern);
   });
 }
 
 function isActionRegistered(action, instance) {
   return !!instance && !!instance._methods && typeof action === 'string' && !!instance._methods[action] && (0, _core.isFunction)(instance._methods[action]);
-}
-
-function checkSequenceAction(action) {
-  var isString = typeof action === 'string';
-  var isFunc = (0, _core.isFunction)(action);
-
-  if (!isFunc && !isString) {
-    throw new TypeError('Sequence could only contain strings or functions');
-  }
-
-  if (!isFunc && !isActionRegistered.call(this, action)) {
-    throw new Error('There is no registered action "' + action + '"');
-  }
-
-  return true;
-}
-
-function checkPatternSequence(sequence, context) {
-  if (!sequence || !sequence.map) {
-    throw new TypeError('"sequence" should be an array of sequences');
-  }
-
-  return sequence.map(checkSequenceAction.bind(context));
-}
-
-function checkPattern(pattern) {
-  if (!(0, _core.isObject)(pattern)) {
-    throw new TypeError('Pattern should be a plain object');
-  }
-
-  if (!pattern.hasOwnProperty('sequence')) {
-    throw new TypeError('Pattern should contain the "sequence" property');
-  }
-
-  if (!(0, _core.isArray)(pattern.sequence)) {
-    throw new TypeError('"Sequence" property should be an array of actions (see docs: sequence)');
-  }
-
-  checkPatternSequence(pattern.sequence, this);
-
-  return true;
-}
-
-function checkAllPatterns(patterns, context) {
-  return patterns.forEach(checkPattern.bind(context));
-}
-
-function isMethodRegistered(wantedMethod) {
-  if (!this._methods) {
-    return false;
-  }
-
-  var foundMethod = this._methods.filter(function (method) {
-    return method === wantedMethod;
-  });
-
-  return foundMethod && foundMethod.length > 0;
 }
 
 // looks if the pattern was registered previously in the instance

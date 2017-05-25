@@ -91,6 +91,8 @@ function initializePattern(instance, givenPattern) {
 // anonymous pattern is a regular pattern, but it doesn't have a name and callbacks
 // so it can not be reffered from other sequences
 function run(pattern) {
+  var _this = this;
+
   if (!this.runned) {
     this.runned = [];
   }
@@ -101,9 +103,19 @@ function run(pattern) {
     with: pattern
   });
 
-  if (this.options.authorization && !this.options.authorization.manual) {
-    this.authorize();
-  }
+  var authorize = function authorize() {
+    if (_this.options.authorization && !_this.options.authorization.manual) {
+      _this.authorize();
+    }
+  };
 
-  return initializePattern(this, pattern), this;
+  if (this.options.authorization) {
+    this._onAuthorize = function () {
+      initializePattern(_this, pattern);
+    };
+
+    return authorize(), this;
+  } else {
+    return initializePattern(this, pattern), this;
+  }
 }

@@ -87,9 +87,19 @@ export function run(pattern) {
     with: pattern
   })
 
-  if (this.options.authorization && !this.options.authorization.manual) {
-    this.authorize()
+  let authorize = () => {
+    if (this.options.authorization && !this.options.authorization.manual) {
+      this.authorize()
+    }
   }
 
-  return initializePattern(this, pattern), this
+  if (this.options.authorization) {
+    this._onAuthorize = () => {
+      initializePattern(this, pattern)
+    }
+
+    return authorize(), this
+  } else {
+    return initializePattern(this, pattern), this
+  }
 }

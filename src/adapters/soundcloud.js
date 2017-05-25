@@ -1,6 +1,6 @@
 import SC from 'node-soundcloud'
 
-import { writeToken, tokenExists, getToken } from './index'
+import { createAuthfileIfNotExist, writeToken, tokenExists, getToken } from './index'
 import createServer from '../rest/quickServer'
 
 export function getSoundcloudUrl(credentials) {
@@ -24,8 +24,8 @@ export function requestHandler(instance, req, res) {
       throw new Error(error)
     } else {
       // Client is now authorized and able to make API calls
-      instance._data.accessToken = accessToken
-      instance.SC = SC
+      instance._data.auth.accessToken = accessToken
+      instance._data.SC = SC
 
       writeToken('soundcloud', accessToken)
     }
@@ -40,8 +40,10 @@ export function authorizeWithToken(credentials, settings, instance, accessToken)
     uri: credentials.redirectURI
   })
 
-  instance._data.accessToken = accessToken
-  instance.SC = SC
+  instance._data.auth.accessToken = accessToken
+  instance._data.SC = SC
+
+  instance._onAuthorize()
 
   // TODO
   // check here if user can make calls with this accessToken
@@ -71,15 +73,26 @@ export default function soundcloudAdapter(restSettings) {
       period: 86400
     },
 
+    authorization: {
+      async: true,
+      manual: false
+    },
+
     methods: {
       authorize(credentials, settings, instance) {
-        if (tokenExists('soundcloud')) {
-          let existingToken = getToken('soundcloud')
-
-          return authorizeWithToken(credentials, settings, instance, existingToken)
+        if (!instance._data.auth) {
+          instance._data.auth = {}
         }
 
-        authorizeWithoutToken(credentials, settings, instance)
+        createAuthfileIfNotExist(() => {
+          if (tokenExists('soundcloud')) {
+            let existingToken = instance._data.auth.accessToken || getToken('soundcloud')
+
+            return authorizeWithToken(credentials, settings, instance, existingToken)
+          }
+
+          authorizeWithoutToken(credentials, settings, instance)
+        })
       },
 
       deauthorize(credentials, settings, instance) {

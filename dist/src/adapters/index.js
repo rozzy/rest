@@ -14,6 +14,10 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
 var _nodeYaml = require('node-yaml');
 
 var _nodeYaml2 = _interopRequireDefault(_nodeYaml);
@@ -38,13 +42,16 @@ function createAuthFile(callback, err, data) {
 }
 
 function createAuthfileIfNotExist(callback) {
-  return _fs2.default.existsSync(AUTH_FILE, function (exists) {
-    if (!exists) {
-      _fs2.default.writeFile(AUTH_FILE, { flag: 'wx' }, createAuthFile.bind(null, callback));
-    } else if (callback) {
-      callback();
-    }
-  });
+  var exists = _fs2.default.existsSync(AUTH_FILE);
+
+  console.log('exists?', exists);
+  console.log(_path2.default.join(process.cwd(), 'log.txt'));
+
+  if (!exists) {
+    console.log('write', _fs2.default.writeFile(AUTH_FILE, { flag: 'wx' }, createAuthFile.bind(null, callback)));
+  } else if (callback) {
+    return callback();
+  }
 }
 
 function getAuthfileContent() {
@@ -58,8 +65,6 @@ function getToken(adapter) {
 }
 
 function writeToken(adapter, token) {
-  createAuthfileIfNotExist();
-
   var content = getAuthfileContent();
   content[adapter] = token;
 
