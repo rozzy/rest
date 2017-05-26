@@ -75,7 +75,7 @@ var _core = require('lodash/core');
 
 var sequencer = {
   public: {
-    index: null,
+    index: 0,
     prevResolution: null,
     last: null,
     repeat: repeat
@@ -86,10 +86,10 @@ var sequencer = {
 };
 
 function repeat() {
-  this.public.index += 1;
-  this.index = 0;
+  sequencer.public.index += 1;
+  sequencer.index = 0;
 
-  return this.next(this.instance);
+  return sequencer.next(sequencer.instance);
 }
 
 function createNew(instance, pattern, executable) {

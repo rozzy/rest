@@ -55,7 +55,7 @@ import { isFunction, isArray, isObject } from 'lodash/core'
 
 let sequencer = {
   public: {
-    index: null,
+    index: 0,
     prevResolution: null,
     last: null,
     repeat
@@ -66,10 +66,10 @@ let sequencer = {
 }
 
 export function repeat() {
-  this.public.index += 1
-  this.index = 0
+  sequencer.public.index += 1
+  sequencer.index = 0
 
-  return this.next(this.instance)
+  return sequencer.next(sequencer.instance)
 }
 
 export function createNew(instance, pattern, executable) {

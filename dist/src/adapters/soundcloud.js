@@ -78,7 +78,7 @@ function authorizeWithoutToken(credentials, settings, instance) {
   var _require = require('child_process'),
       spawn = _require.spawn;
 
-  (0, _quickServer2.default)(instance.options.authorization.redirectURI, requestHandler.bind(requestHandler, instance));
+  (0, _quickServer2.default)(instance.options.authorization.redirectURI, requestHandler.bind(requestHandler, instance), instance.options.authorization.port);
 
   spawn('open', [authLink]);
 }
@@ -114,6 +114,7 @@ function soundcloudAdapter(restSettings) {
         });
       },
       deauthorize: function deauthorize(credentials, settings, instance) {
+        instance._data.auth.accessToken = null;
         console.log('@deauthorize', [restSettings, credentials, settings], instance);
       }
     }

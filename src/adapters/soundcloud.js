@@ -99,6 +99,7 @@ export default function soundcloudAdapter(restSettings) {
       },
 
       deauthorize(credentials, settings, instance) {
+        instance._data.auth.accessToken = null
         console.log('@deauthorize', [restSettings, credentials, settings], instance)
       }
     }
