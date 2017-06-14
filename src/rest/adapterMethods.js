@@ -49,10 +49,6 @@ export function useAdapter(adapterName) {
 
   this._adapter = adapter
 
-  if (!this._methods) {
-    this._methods = {}
-  }
-
   if (adapter.authorization) {
     this.options.authorization = merge(
       {},
@@ -61,7 +57,13 @@ export function useAdapter(adapterName) {
     )
   }
 
-  this._methods = Object.assign({}, this._methods, this._adapter.methods)
+  if (adapter.methods) {
+    if (!this._methods) {
+      this._methods = {}
+    }
+
+    this._methods = merge({}, this._methods, adapter.methods)
+  }
 
   return this
 }

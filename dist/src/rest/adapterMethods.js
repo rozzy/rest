@@ -58,15 +58,17 @@ function useAdapter(adapterName) {
 
   this._adapter = adapter;
 
-  if (!this._methods) {
-    this._methods = {};
-  }
-
   if (adapter.authorization) {
     this.options.authorization = (0, _lodash.merge)({}, adapter.authorization, this.options.authorization);
   }
 
-  this._methods = Object.assign({}, this._methods, this._adapter.methods);
+  if (adapter.methods) {
+    if (!this._methods) {
+      this._methods = {};
+    }
+
+    this._methods = (0, _lodash.merge)({}, this._methods, adapter.methods);
+  }
 
   return this;
 }
