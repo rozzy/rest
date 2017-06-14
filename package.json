@@ -1,6 +1,6 @@
 {
   "name": "npm-rest",
-  "version": "0.0.24",
+  "version": "0.0.26",
   "description": "middleware for writing bots",
   "main": "dist/index.js",
   "scripts": {
@@ -46,9 +46,10 @@
     "should": "^11.2.1"
   },
   "dependencies": {
-    "lodash": "^4.17.4",
     "express": "^4.15.2",
+    "jsonfile": "^3.0.0",
+    "lodash": "^4.17.4",
     "node-soundcloud": "0.0.6",
-    "node-yaml": "^3.0.3"
+    "twitter": "^1.7.0"
   }
 }

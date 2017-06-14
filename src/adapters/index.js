@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import yaml from 'node-yaml'
+import jsonfile from 'jsonfile'
 
 // there is a .gitignored file in the folder
 // which creates automatically (if not exists)
@@ -25,7 +25,7 @@ export function createAuthfileIfNotExist(callback) {
   if (!exists) {
     fs.writeFile(
       AUTH_FILE,
-      '',
+      '{}',
       { flag: 'wx' },
       createAuthFile.bind(null, callback)
     )
@@ -35,7 +35,7 @@ export function createAuthfileIfNotExist(callback) {
 }
 
 export function getAuthfileContent() {
-  return yaml.readSync(AUTH_FILE, 'utf-8') || {}
+  return jsonfile.readFileSync(AUTH_FILE)
 }
 
 export function getToken(adapter) {
@@ -47,8 +47,8 @@ export function getToken(adapter) {
 export function writeToken(adapter, token) {
   let content = getAuthfileContent()
   content[adapter] = token
-
-  return yaml.writeSync(AUTH_FILE, content)
+  // return fs.writeFileSync(AUTH_FILE, yaml.dump(content))
+  jsonfile.writeFile(AUTH_FILE, content)
 }
 
 export function tokenExists(adapter) {

@@ -18,9 +18,9 @@ var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
-var _nodeYaml = require('node-yaml');
+var _jsonfile = require('jsonfile');
 
-var _nodeYaml2 = _interopRequireDefault(_nodeYaml);
+var _jsonfile2 = _interopRequireDefault(_jsonfile);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -45,14 +45,14 @@ function createAuthfileIfNotExist(callback) {
   var exists = _fs2.default.existsSync(AUTH_FILE);
 
   if (!exists) {
-    _fs2.default.writeFile(AUTH_FILE, '', { flag: 'wx' }, createAuthFile.bind(null, callback));
+    _fs2.default.writeFile(AUTH_FILE, '{}', { flag: 'wx' }, createAuthFile.bind(null, callback));
   } else if (callback) {
     return callback();
   }
 }
 
 function getAuthfileContent() {
-  return _nodeYaml2.default.readSync(AUTH_FILE, 'utf-8') || {};
+  return _jsonfile2.default.readFileSync(AUTH_FILE);
 }
 
 function getToken(adapter) {
@@ -64,8 +64,8 @@ function getToken(adapter) {
 function writeToken(adapter, token) {
   var content = getAuthfileContent();
   content[adapter] = token;
-
-  return _nodeYaml2.default.writeSync(AUTH_FILE, content);
+  // return fs.writeFileSync(AUTH_FILE, yaml.dump(content))
+  _jsonfile2.default.writeFile(AUTH_FILE, content);
 }
 
 function tokenExists(adapter) {
